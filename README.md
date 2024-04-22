@@ -55,7 +55,7 @@ For each logic bug, EET records three SQL queries:
 
 In principle, eet.sql and origin.sql should produce the same execution results. EET identifies a logic bug if the equivalence is violated.
 
-An example of a logic bug in PostgreSQL
+An example of a logic bug in PostgreSQL:
 
 **db_setup.sql**
 ```sql

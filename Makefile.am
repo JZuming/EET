@@ -1,6 +1,6 @@
 -include Makefile.local
 
-bin_PROGRAMS = qcn
+bin_PROGRAMS = eet
 
 AM_CPPFLAGS = -Dfuzz_test
 DUT = postgres.cc
@@ -70,11 +70,11 @@ value_expr/bool_expr/bool_binop/comparison_op.cc
 
 AUTOMAKE_OPTIONS = subdir-objects
 
-qcn_SOURCES = relmodel.cc schema.cc $(DUT)	 			\
+eet_SOURCES = relmodel.cc schema.cc $(DUT)	 			\
     random.cc prod.cc $(VALUE_EXPR_SRC) $(BOOL_EXPR_SRC) grammar.cc log.cc dump.cc impedance.cc	\
     dbms_info.cc general_process.cc $(QCN_TESTER_SRC) qcn.cc
 
-qcn_LDADD = $(LIBPQXX_LIBS) $(MONETDB_MAPI_LIBS) $(BOOST_REGEX_LIB) $(POSTGRESQL_LIBS) $(BOOST_LDFLAGS) $(POSTGRESQL_LDFLAGS)
+eet_LDADD = $(LIBPQXX_LIBS) $(MONETDB_MAPI_LIBS) $(BOOST_REGEX_LIB) $(POSTGRESQL_LIBS) $(BOOST_LDFLAGS) $(POSTGRESQL_LDFLAGS)
 
 # AM_LDFLAGS = -fsanitize=address
 AM_CPPFLAGS += $(BOOST_CPPFLAGS) $(LIBPQXX_CFLAGS) $(POSTGRESQL_CPPFLAGS) $(MONETDB_MAPI_CFLAGS) -Wall -Wno-sign-compare -Wextra -fPIC -g 

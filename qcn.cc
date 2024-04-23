@@ -25,7 +25,7 @@ using boost::regex_match;
 using namespace std;
 
 #define DEFAULT_DB_TEST_TIME 50
-#define DB_RECORD_FILE "db_record_file.sql"
+#define DB_RECORD_FILE "db_setup.sql"
 
 unsigned long long test_start_timestamp_ms = 0;
 unsigned long long dbms_execution_ms = 0;
@@ -256,7 +256,7 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
                     bool expected = (err.find("expected error") != string::npos) || (err.find("timeout") != string::npos);
                     if (!expected) {
                         cerr << "unexpected error generated from generate_database: " << err << endl;
-                        cerr << "cannot save backup as generating db is not finished"<< endl;
+                        // cerr << "cannot save backup as generating db is not finished"<< endl;
                         abort(); // stop if trigger unexpected error
                     }
                     rand_seed = rd();
@@ -307,6 +307,7 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
 
                 cerr << "start test" << endl;
                 if (qcn->qcn_test() == false) {
+                    cerr << "LOGIC BUG!!! DBMS produces incorrect results" << endl;
                     save_backup_file(".", d_info);
                     qcn->save_testcase("origin");
                     cerr << "minimizing ..." << endl << endl;
@@ -323,7 +324,7 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
                     qcn->print_origin_qit_difference();
 
                     // reduce database
-                    minimize_qcn_database(qcn, DB_RECORD_FILE, "minimized/minimized_db_record.sql");
+                    minimize_qcn_database(qcn, DB_RECORD_FILE, "minimized/" + string(DB_RECORD_FILE));
                     exit(EXIT_FAILURE);
                 }
                 executed_test_num ++;
@@ -361,7 +362,7 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
         }
         // ignore memory issue currently
         if (WIFSIGNALED(status)) {
-            cerr << "trigger a memory issue!! the server might be crashed" << endl;
+            cerr << "trigger a memory bug!! the server might be crashed" << endl;
             auto signal_num = WTERMSIG(status);
             cerr << "signal: " << signal_num << endl;
             cerr << "signal info: " << strsignal(signal_num) << endl;

@@ -1,6 +1,6 @@
 #include "general_process.hh"
 
-#define DB_RECORD_FILE "db_record_file.sql"
+#define DB_RECORD_FILE "db_setup.sql"
 
 extern int write_op_id;
 extern unsigned long long dbms_execution_ms;

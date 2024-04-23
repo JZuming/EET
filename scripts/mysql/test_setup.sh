@@ -1,6 +1,6 @@
 #!/bin/sh
 n=1
-
+TOOL=eet
 export ASAN_OPTIONS=detect_leaks=0
 nohup /usr/local/mysql/bin/mysqld_safe &
 sleep 3s
@@ -19,7 +19,7 @@ do
     mkdir test$n
     cd test$n
     pwd
-    tmux new -d -s test$n "/home/mysql/qit/qcn $IGNORE_CRASH --mysql-db=testdb$n --mysql-port=3306 2>&1 |tee log"
+    tmux new -d -s test$n "/home/mysql/$TOOL/$TOOL $IGNORE_CRASH --mysql-db=testdb$n --mysql-port=3306 2>&1 |tee log"
     sleep 1s
     cd ../
     n=$(( $n + 1))

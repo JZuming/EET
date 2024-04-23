@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG TOOL_NAME=qit
+ARG TOOL_NAME=eet
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y apt-utils
@@ -11,11 +11,10 @@ RUN apt-get install -y vim cmake curl wget git
 RUN apt-get install -y libssl-dev g++ libncurses5-dev
 RUN apt-get install -y pkg-config bison 
 RUN useradd -ms /bin/bash mysql
-USER mysql
 WORKDIR /home/mysql
-COPY mysql-8.0.34.tar.gz /home/mysql/mysql-8.0.34.tar.gz
-RUN tar -zxf mysql-8.0.34.tar.gz
-RUN mv mysql-server-mysql-8.0.34 mysql_source/
+COPY mysql_source mysql_source/
+RUN chown -R mysql:mysql mysql_source/
+USER mysql
 
 # build mysql
 WORKDIR /home/mysql/mysql_source
@@ -49,9 +48,6 @@ WORKDIR /home/mysql/$TOOL_NAME
 RUN autoreconf -if
 RUN ./configure
 RUN make clean; make -j
-RUN git config user.name "zuming"
-RUN git config user.email "zuming.jiang@inf.ethz.ch"
-RUN git config --global credential.helper store
 
 WORKDIR /home/mysql
 USER root

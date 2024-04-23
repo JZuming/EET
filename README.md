@@ -19,11 +19,11 @@ The paper based on this tool has been (conditionally) accepted by [OSDI 2024](ht
 
 ## Evaluation or Quick Start
 
-We provide scripts to quickly set up the necessary environments in docker and test specific database systems using EET. We recommend you to follow the instructions in the scripts to evaluate EET or familiarize yourself with EET. For artifact evaluation, we recommend to test the old versions of database systems, where the bugs found by EET had not been fixed yet.
+We provide scripts to quickly set up the necessary environments in docker and test specific database systems using EET. We recommend you to follow the instructions in the scripts to evaluate EET or familiarize yourself with EET. For artifact evaluation, we recommend to test the specified versions of database systems, where the bugs found by EET had not been fixed yet.
 
-### Artifact Evaluation: testing old versions of database systems
+### Artifact Evaluation
 
-For artifact evaluation, we provide scripts to automatically test old versions (the tested version describe in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hours.
+For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hours.
 
 - [Test MySQL at version 8.0.34]()
 - [Test PostgreSQL at commit 3f1aaaa]()

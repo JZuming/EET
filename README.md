@@ -7,15 +7,15 @@ EET is an automatic testing tool for detecting crashes and logic bugs in databas
 The paper based on this tool has been (conditionally) accepted by [OSDI 2024](https://www.usenix.org/conference/osdi24).
 
 ## Supported Database Systems and Found Bugs
-✅ MySQL (16 bugs, listed in [here](./docs/mysql_bugs.md))
+✅ MySQL (16 bugs listed in [here](./docs/bugs/mysql_bugs.md))
 
-✅ PostgreSQL (9 bugs, listed in [here](./docs/mysql_bugs.md))
+✅ PostgreSQL (9 bugs listed in [here](./docs/bugs/postgres_bugs.md))
 
-✅ SQLite (10 bugs, listed in [here](./docs/mysql_bugs.md))
+✅ SQLite (10 bugs listed in [here](./docs/bugs/sqlite_bugs.md))
 
-✅ ClickHouse (21 bugs, listed in [here](./docs/mysql_bugs.md))
+✅ ClickHouse (21 bugs listed in [here](./docs/bugs/clickhouse_bugs.md))
 
-✅ TiDB (10 bugs, listed in [here](./docs/mysql_bugs.md))
+✅ TiDB (10 bugs listed in [here](./docs/bugs/tidb_bugs.md))
 
 ## Evaluation or Quick Start
 

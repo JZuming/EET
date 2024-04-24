@@ -25,7 +25,7 @@ We provide scripts to quickly set up the necessary environments in docker and te
 
 For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hours.
 
-- [Test MySQL at version 8.0.34]()
+- [Test MySQL at version 8.0.34](./docs/test/mysql_test.md)
 - [Test PostgreSQL at commit 3f1aaaa]()
 - [Test SQLite at commit 20e09ba]()
 - [Test ClickHouse at commit 30464b9]()

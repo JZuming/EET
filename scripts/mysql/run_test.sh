@@ -19,13 +19,15 @@ else
     rm mysql-8.0.34.tar.gz
 fi
 
-mode="default"
+docker_num=1
+test_each_docker=1
+
 if [ $# -ge 1 ]; then
-    mode=$1
+    docker_num=$1
 fi
 
-if [ "$mode" == "large" ]; then
-    ./build_docker.sh n y 8 1 n
-else
-    ./build_docker.sh n y 1 1 n
+if [ $# -ge 2 ]; then
+    test_each_docker=$2
 fi
+
+./build_docker.sh n y $docker_num $test_each_docker n

@@ -32,7 +32,7 @@ do
     mkdir test$n
     cd test$n
     pwd
-    tmux new -d -s test$n "/root/qit/qcn $IGNORE_CRASH --sqlite=test$n.db 2>&1 |tee log"
+    tmux new -d -s test$n "/root/EET/eet $IGNORE_CRASH --sqlite=test$n.db 2>&1 |tee log"
     sleep 1s
     cd ../
     n=$(( $n + 1))

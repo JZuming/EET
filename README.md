@@ -27,7 +27,7 @@ For artifact evaluation, we provide scripts to automatically test specified vers
 
 - [Test MySQL at version 8.0.34](./docs/test/mysql_test.md)
 - [Test PostgreSQL at commit 3f1aaaa](./docs/test/postgres_test.md)
-- [Test SQLite at commit 20e09ba]()
+- [Test SQLite at commit 20e09ba](./docs/test/sqlite_test.md)
 - [Test ClickHouse at commit 30464b9]()
 - [Test TiDB at commit f5ca27e]()
 

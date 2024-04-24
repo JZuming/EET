@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DOCKER_DIR="."
-TOOL_DIR="eet"
+TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
 
 echo "copy the mysql "$TOOL_DIR" scripts"

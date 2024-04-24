@@ -36,7 +36,7 @@ do
     mkdir test$n
     cd test$n
     pwd
-    tmux new -d -s test$n "/home/zuming/qit/qcn $IGNORE_CRASH --postgres-db=testdb$n --postgres-port=5432 2>&1 |tee log"
+    tmux new -d -s test$n "/home/zuming/EET/eet $IGNORE_CRASH --postgres-db=testdb$n --postgres-port=5432 2>&1 |tee log"
     sleep 1s
     cd ../
     n=$(( $n + 1))

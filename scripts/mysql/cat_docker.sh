@@ -7,15 +7,14 @@ container=$tool-development-mysql
 log_file=log
 DIR=/home/mysql/test
 
-echo "triggered bugs: "
 docker_num=$(docker ps | grep $container |wc -l)
 while [ $m -le $docker_num ]
 do
 	test_num=$(docker exec -w $DIR -i $container-$m ls -l|grep 'test[1-9][0-9]*'|wc -l)
 	while [ $n -le $test_num ]
 	do
+		echo $container-$m:test$n:
 		if test ! -z "$(docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | grep -i 'bug')"; then
-			echo $container-$m:test$n
 			docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | grep -i 'bug'
 			mkdir -p bugs
 			bug_type="crash"

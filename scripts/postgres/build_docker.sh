@@ -1,24 +1,49 @@
 #!/bin/bash
 
 DOCKER_DIR="."
-TOOL_DIR="qit"
+TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
-DOCKER_CONTAINER_NAME=$TOOL_DIR"-development-postgres"
+DOCKER_CONTAINER_NAME="eet-development-postgres"
 DOCKER_IMAGE_NAME=$DOCKER_CONTAINER_NAME
-DOCKER_VOLUME_LOCATION="/zdata/zuming/qit/postgres_docker_disk"
 
-echo "stop and remove the previous container"
-docker stop $(docker ps  -a --format "table {{.Names}}" | grep $DOCKER_CONTAINER_NAME)
-docker rm $(docker ps  -a --format "table {{.Names}}" | grep $DOCKER_CONTAINER_NAME)
+./stop_docker.sh
 
 echo "copy the qit source code"
 rm $DOCKER_DIR/$TOOL_DIR -rf
 cp -r $TOOL_SRC_DIR $DOCKER_DIR
 cd $DOCKER_DIR
 
-echo "build the qit test image"
+echo "build the "$TOOL_DIR" test image"
 DOCKERFILE="Dockerfile"
-read -p "build database engine with asan (y/n)?" answer
+
+echo "/****************************/"
+if [ $# -ge 1 ]; then
+    echo "build database engine with asan (y/n)? : "$1
+fi
+
+if [ $# -ge 2 ]; then
+    echo "run the test now (y/n)? : "$2
+fi
+
+if [ $# -ge 3 ]; then
+    echo "docker number (max 8): "$3
+fi
+
+if [ $# -ge 4 ]; then
+    echo "test number in each docker: "$4
+fi
+
+if [ $# -ge 5 ]; then
+    echo "test with --ignore-crash (y/n)? "$5
+fi
+echo "/****************************/"
+
+if [ $# -ge 1 ]; then
+    answer=$1
+else
+    read -p "build database engine with asan (y/n)? " answer
+fi
+
 if [ "$answer" == "y" ]; then
     echo "use Dockerfile_asan"
     DOCKERFILE="Dockerfile_asan"
@@ -28,19 +53,36 @@ DOCKER_BUILDKIT=1 docker build -t $DOCKER_IMAGE_NAME -f $DOCKERFILE .
 rm $DOCKER_DIR/$TOOL_DIR -rf
 docker rmi $(docker image ls -f dangling=true -q)
 
-read -p "run the test now (y/n)?" answer
+if [ $# -ge 2 ]; then
+    answer=$2
+else
+    read -p "run the test now (y/n)? " answer
+fi
+
 if [ "$answer" != "y" ]; then
     echo "do not test it now, exit the script"
     exit
 fi
 
-read -p "docker number (max 8): " answer
+if [ $# -ge 3 ]; then
+    answer=$3
+else
+    read -p "docker number: " answer
+fi
 docker_num=$answer
 
-read -p "test number in each docker: " answer
+if [ $# -ge 4 ]; then
+    answer=$4
+else
+    read -p "test instance number in each docker: " answer
+fi
 test_num=$answer
 
-read -p "test with --ignore-crash (y/n)?" answer
+if [ $# -ge 5 ]; then
+    answer=$5
+else
+    read -p "test with --ignore-crash (y/n)? " answer
+fi
 ignore_crash=$answer
 
 # cp and run test_setup.sh
@@ -48,7 +90,7 @@ n=1
 while [ $n -le $docker_num ]
 do
     echo "run docker container: "$DOCKER_CONTAINER_NAME-$n
-    docker run -itd -m 20g --name $DOCKER_CONTAINER_NAME-$n -v $DOCKER_VOLUME_LOCATION-$n:/home/zuming/test $DOCKER_IMAGE_NAME
+    docker run -itd -m 20g --name $DOCKER_CONTAINER_NAME-$n $DOCKER_IMAGE_NAME
     docker cp test_setup.sh $DOCKER_CONTAINER_NAME-$n:/home/zuming/test
     docker exec -it $DOCKER_CONTAINER_NAME-$n chown zuming:zuming -R /home/zuming/test
     docker exec -it $DOCKER_CONTAINER_NAME-$n su - zuming -c "cd /home/zuming/test; bash test_setup.sh $test_num $ignore_crash"

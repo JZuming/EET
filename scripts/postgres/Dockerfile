@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG TOOL_NAME=qit
+ARG TOOL_NAME=EET
 ARG USER_NAME=zuming
 
 RUN apt-get update && apt-get upgrade -y
@@ -53,4 +53,5 @@ RUN git config --global credential.helper store
 
 USER root
 WORKDIR /home/$USER_NAME
+RUN mkdir test
 ENTRYPOINT bash

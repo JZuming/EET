@@ -13,7 +13,7 @@ cd postgres_test
 
 ### Check testing results
 ```shell
-# in mysql_test directory
+# in test directory
 ./cat_docker.sh 
 # it prints the triggered bug in each container and store the bug-triggering queries in bugs/ directory
 ```

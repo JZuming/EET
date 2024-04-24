@@ -5,6 +5,7 @@ TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
 DOCKER_CONTAINER_NAME="eet-development-postgres"
 DOCKER_IMAGE_NAME=$DOCKER_CONTAINER_NAME
+MEM_LIMIT=10g
 
 ./stop_docker.sh
 
@@ -90,7 +91,7 @@ n=1
 while [ $n -le $docker_num ]
 do
     echo "run docker container: "$DOCKER_CONTAINER_NAME-$n
-    docker run -itd -m 20g --name $DOCKER_CONTAINER_NAME-$n $DOCKER_IMAGE_NAME
+    docker run -itd -m $MEM_LIMIT --name $DOCKER_CONTAINER_NAME-$n $DOCKER_IMAGE_NAME
     docker cp test_setup.sh $DOCKER_CONTAINER_NAME-$n:/home/zuming/test
     docker exec -it $DOCKER_CONTAINER_NAME-$n chown zuming:zuming -R /home/zuming/test
     docker exec -it $DOCKER_CONTAINER_NAME-$n su - zuming -c "cd /home/zuming/test; bash test_setup.sh $test_num $ignore_crash"

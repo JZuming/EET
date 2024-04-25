@@ -1,4 +1,4 @@
-## Testing TiDB (commit f5ca27e)
+## Testing TiDB (latest version)
 ### Set up testing
 ```shell
 mkdir tidb_test

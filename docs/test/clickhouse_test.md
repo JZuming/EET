@@ -3,7 +3,7 @@
 ```shell
 mkdir clickhouse_test
 git clone https://github.com/JZuming/EET.git
-cp EET/scripts/sqlite/run_test.sh clickhouse_test
+cp EET/scripts/clickhouse/run_test.sh clickhouse_test
 cd clickhouse_test
 ./run_test.sh 2 1 
 # run_test.sh: build 2 docker container, and each container has 1 EET test instance.

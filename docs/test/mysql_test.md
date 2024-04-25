@@ -3,7 +3,7 @@
 ```shell
 mkdir mysql_test
 git clone https://github.com/JZuming/EET.git
-cp EET/scripts/tidb/run_test.sh mysql_test
+cp EET/scripts/mysql/run_test.sh mysql_test
 cd mysql_test
 ./run_test.sh 2 1 
 # run_test.sh: build 2 docker container, and each container has 1 EET test instance.

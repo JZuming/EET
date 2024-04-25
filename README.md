@@ -23,13 +23,15 @@ We provide scripts to quickly set up the necessary environments in docker and te
 
 ### Artifact Evaluation
 
-For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hours.
+For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hour.
+
+_Notice: When EET found a bug in the tested database system, it stopped testing and record the bug-triggering queries. Then, we reported the bug to developers and applied their fixes. In this way, we could avoid the case that EET produce a lot of redundant queries triggering the same bug._
 
 - [Test MySQL at version 8.0.34](./docs/test/mysql_test.md)
 - [Test PostgreSQL at commit 3f1aaaa](./docs/test/postgres_test.md)
 - [Test SQLite at commit 20e09ba](./docs/test/sqlite_test.md)
 - [Test ClickHouse at commit 30464b9](./docs/test/clickhouse_test.md)
-- [Test TiDB at commit f5ca27e]()
+- [Test TiDB at commit f5ca27e](./docs/test/tidb_test.md)
 
 Because EET randomly generates SQL queries, the queries generated in reviewers' artifact evaluation could be different from the queries we generated in our evaluation. To help reviewers exactly check the reproducibilty of EET, we provide [bug_features.xlsx]() to validate Table 4 in our paper and [bug_latency.xlsx]() to validate Table 6 in our paper.
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 DOCKER_DIR="."
-TOOL_DIR="qit"
+TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
 
-echo "copy the tidb qit scripts"
+echo "copy the tidb "$TOOL_DIR" scripts"
 cp $TOOL_SRC_DIR/scripts/tidb/* $DOCKER_DIR/
 cd $DOCKER_DIR
 
@@ -14,7 +14,22 @@ if [ -d tidb ]; then
 else
     echo "git clone tidb ..."
     git clone https://github.com/pingcap/tidb.git
+    echo "reset to commit f5ca27e"
+    cd tidb
+    git checkout f5ca27e
+    cd ..
     echo "done"
 fi
 
-./build_docker.sh
+docker_num=1
+test_each_docker=1
+
+if [ $# -ge 1 ]; then
+    docker_num=$1
+fi
+
+if [ $# -ge 2 ]; then
+    test_each_docker=$2
+fi
+
+./build_docker.sh n y $docker_num $test_each_docker n

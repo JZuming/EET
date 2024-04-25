@@ -1,11 +1,11 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG TOOL_NAME=qit
+ARG TOOL_NAME=EET
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y apt-utils
-RUN apt-get install -y vim cmake curl wget git
+RUN apt-get install -y vim cmake curl wget git tmux
 
 # build golang
 WORKDIR /root/
@@ -34,9 +34,7 @@ RUN autoreconf -if
 RUN ./configure 
 RUN make clean; make -j
 
-RUN git config user.name "zuming"
-RUN git config user.email "zuming.jiang@inf.ethz.ch"
-RUN git config --global credential.helper store
 WORKDIR /root
+RUN mkdir test
 ENV ASAN_OPTIONS=detect_leaks=0
 ENTRYPOINT bash

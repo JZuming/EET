@@ -33,7 +33,7 @@ _Notice: When EET found a bug in the tested database system, it stopped testing 
 - [Test ClickHouse at commit 30464b9](./docs/test/clickhouse_test.md)
 - [Test TiDB at commit f5ca27e](./docs/test/tidb_test.md)
 
-Because EET randomly generates SQL queries, the queries generated in reviewers' artifact evaluation could be different from the queries we generated in our evaluation. To help reviewers exactly check the reproducibilty of EET, we provide [bug_features.xlsx]() to validate Table 4 in our paper and [bug_latency.xlsx]() to validate Table 6 in our paper.
+Because EET randomly generates SQL queries, the queries generated in reviewers' artifact evaluation could be different from the queries we generated in our evaluation. To help reviewers accurately check the reproducibilty of EET, we provide two google sheets: [EET-Bug-Features](https://docs.google.com/spreadsheets/d/1DjdOJ-aHou6aPjOlvWj_f_QnXjm0F3Osc9JI5zv48r8/edit#gid=0) to validate Table 4 in our paper and [EET-Bug-Latency](https://docs.google.com/spreadsheets/d/1eXqx9rhpIsQemopG0qC_cj6yYqoRrcUT6ewC6uAGbf4/edit#gid=0) to validate Table 6 in our paper.
 
 ### Testing latest versions of database systems
 

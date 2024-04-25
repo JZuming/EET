@@ -97,8 +97,3 @@ do
     docker exec -it $DOCKER_CONTAINER_NAME-$n su - zuming -c "cd /home/zuming/test; bash test_setup.sh $test_num $ignore_crash"
     n=$(( $n + 1))
 done
-
-# /usr/local/pgsql/bin/psql -d postgres -c "drop database redb"; 
-# /usr/local/pgsql/bin/psql -d postgres -c "create database redb"; 
-# /usr/local/pgsql/bin/psql -d redb -f db_record_file.sql; 
-# /usr/local/pgsql/bin/psql -d redb -f unexpected.sql

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DOCKER_DIR="."
-TOOL_DIR="qit"
+TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
 
 echo "copy the clickhouse qit scripts"
@@ -14,7 +14,22 @@ if [ -d ClickHouse ]; then
 else
     echo "git clone clickhouse ..."
     git clone https://github.com/ClickHouse/ClickHouse.git
+    echo "reset to commit 30464b9"
+    cd ClickHouse
+    git checkout 30464b9
+    cd ..
     echo "done"
 fi
 
-./build_docker.sh
+docker_num=1
+test_each_docker=1
+
+if [ $# -ge 1 ]; then
+    docker_num=$1
+fi
+
+if [ $# -ge 2 ]; then
+    test_each_docker=$2
+fi
+
+./build_docker.sh n y $docker_num $test_each_docker n

@@ -38,7 +38,7 @@ do
     mkdir test$n
     cd test$n
     pwd
-    tmux new -d -s test$n "/root/qit/qcn $IGNORE_CRASH --clickhouse-db=testdb$n --clickhouse-port=9000 2>&1 |tee log"
+    tmux new -d -s test$n "/root/EET/eet $IGNORE_CRASH --clickhouse-db=testdb$n --clickhouse-port=9000 2>&1 |tee log"
     sleep 1s
     cd ../
     n=$(( $n + 1))

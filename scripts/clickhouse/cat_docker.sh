@@ -1,33 +1,47 @@
-#!/bin/sh
+#!/bin/bash
 
 n=1
-test_num=$1
-container=qit-development-clickhouse
+m=1
+tool=eet
+container=$tool-development-clickhouse
 log_file=log
+DIR=/root/test
 
-echo "current running qcn: "$(( $(ps -aux | grep "qcn" |grep "log" | wc -l)))
-
-# while [ $n -le $test_num ]
-# do
-# 	echo "--------------"
-#     echo test$n
-#     echo "--------------"
-#     docker exec -it $container tail -10 test$n/nohup.out
-#     n=$(( $n + 1))
-# done
-
-echo "Trigger bug: "
-n=1
-while [ $n -le $test_num ]
+docker_num=$(docker ps | grep $container |wc -l)
+while [ $m -le $docker_num ]
 do
-    if test ! -z "$(docker exec -w /root/test -it $container tail -30 test$n/$log_file | grep 'trigger')"; then
-	    echo test$n
-	    echo "-----------------------------------------"
-	    echo "*****************************************"
-	    docker exec -w /root/test -it $container tail -8 test$n/$log_file
-	    echo "*****************************************"
-	    echo "-----------------------------------------"
-    fi
-    n=$(( $n + 1))
-done
+	test_num=$(docker exec -w $DIR -i $container-$m ls -l|grep 'test[1-9][0-9]*'|wc -l)
+	while [ $n -le $test_num ]
+	do
+		echo $container-$m:test$n:
+		if test ! -z "$(docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | grep -i 'bug')"; then
+			docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | grep -i 'bug'
+			mkdir -p bugs
+			bug_type="crash"
+			if test ! -z "$(docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | grep -i 'logic')"; then
+				bug_type="logic"
+			fi
 
+			mkdir -p bugs/$container-$m-test$n-$bug_type
+
+			if [ "$bug_type" == "crash" ]; then
+				docker cp $container-$m:$DIR/test$n/db_setup.sql bugs/$container-$m-test$n-$bug_type/db_setup.sql
+				docker cp $container-$m:$DIR/test$n/unexpected.sql bugs/$container-$m-test$n-$bug_type/unexpected.sql
+			else # logic bug
+				db_setup=$container-$m:$DIR/test$n/minimized/db_setup.sql
+				origin_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'origin')
+				origin=$container-$m:$DIR/test$n/minimized/$origin_path
+				eet_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'qit')
+				eet=$container-$m:$DIR/test$n/minimized/$eet_path
+
+				docker cp $db_setup bugs/$container-$m-test$n-$bug_type/db_setup.sql
+				docker cp $origin bugs/$container-$m-test$n-$bug_type/origin.sql
+				docker cp $eet bugs/$container-$m-test$n-$bug_type/eet.sql
+			fi
+			echo ""
+		fi
+		n=$(( $n + 1))
+	done
+	m=$(( $m + 1))
+	n=1
+done

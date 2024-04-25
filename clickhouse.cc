@@ -628,10 +628,7 @@ void dut_clickhouse::test(const string &stmt,
             || error.find("(BAD_TYPE_OF_FIELD)") != string::npos
             || error.find("(TOO_MANY_QUERY_PLAN_OPTIMIZATIONS)") != string::npos // query is too complex
             || error.find("(DECIMAL_OVERFLOW)") != string::npos
-            // reported but not fixed bugs
-            // bugs: https://github.com/ClickHouse/ClickHouse/issues/50316
-            //       https://github.com/ClickHouse/ClickHouse/issues/50227
-            || error.find("(UNKNOWN_IDENTIFIER)") != string::npos
+            || error.find("(CANNOT_ALLOCATE_MEMORY)") != string::npos // Amount of memory requested to allocate is more than allowed
             ) {
             throw runtime_error("clickhouse test expected error [" + error + "]");
         }

@@ -1,10 +1,11 @@
-## Testing ClickHouse (commit 30464b9)
+## Testing SQLite (latest version)
 ### Set up testing
 ```shell
-mkdir clickhouse_test
+mkdir sqlite_test
 git clone https://github.com/JZuming/EET.git
-cp EET/scripts/clickhouse/run_test.sh clickhouse_test
-cd clickhouse_test
+cp EET/scripts/sqlite/run_test.sh sqlite_test
+cd sqlite_test
+git clone https://github.com/sqlite/sqlite.git
 ./run_test.sh 2 1 
 # run_test.sh: build 2 docker container, and each container has 1 EET test instance.
 # the first argument is the number of docker container

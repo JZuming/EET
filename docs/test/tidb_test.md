@@ -1,4 +1,4 @@
-## Testing TiDB
+## Testing TiDB (commit f5ca27e)
 ### Set up testing
 ```shell
 mkdir tidb_test
@@ -20,6 +20,7 @@ cd tidb_test
 
 ### Stop testing
 ```shell
+# in test directory
 ./stop_docker.sh
 ```
 

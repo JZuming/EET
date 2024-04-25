@@ -1,4 +1,4 @@
-## Testing MySQL
+## Testing MySQL (version 8.0.34)
 ### Set up testing
 ```shell
 mkdir mysql_test
@@ -20,6 +20,7 @@ cd mysql_test
 
 ### Stop testing
 ```shell
+# in test directory
 ./stop_docker.sh
 ```
 

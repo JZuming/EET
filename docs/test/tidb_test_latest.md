@@ -1,10 +1,11 @@
-## Testing ClickHouse (commit 30464b9)
+## Testing TiDB (commit f5ca27e)
 ### Set up testing
 ```shell
-mkdir clickhouse_test
+mkdir tidb_test
 git clone https://github.com/JZuming/EET.git
-cp EET/scripts/clickhouse/run_test.sh clickhouse_test
-cd clickhouse_test
+cp EET/scripts/tidb/run_test.sh tidb_test
+cd tidb_test
+git clone https://github.com/pingcap/tidb.git
 ./run_test.sh 2 1 
 # run_test.sh: build 2 docker container, and each container has 1 EET test instance.
 # the first argument is the number of docker container

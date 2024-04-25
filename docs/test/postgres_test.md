@@ -1,4 +1,4 @@
-## Testing PostgreSQL
+## Testing PostgreSQL (commit 3f1aaaa)
 ### Set up testing
 ```shell
 mkdir postgres_test
@@ -20,6 +20,7 @@ cd postgres_test
 
 ### Stop testing
 ```shell
+# in test directory
 ./stop_docker.sh
 ```
 

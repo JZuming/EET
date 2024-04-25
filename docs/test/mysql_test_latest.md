@@ -1,10 +1,12 @@
-## Testing ClickHouse (commit 30464b9)
+## Testing MySQL (latest version)
 ### Set up testing
 ```shell
-mkdir clickhouse_test
+mkdir mysql_test
 git clone https://github.com/JZuming/EET.git
-cp EET/scripts/clickhouse/run_test.sh clickhouse_test
-cd clickhouse_test
+cp EET/scripts/mysql/run_test.sh mysql_test
+cd mysql_test
+git clone https://github.com/mysql/mysql-server.git
+mv mysql-server mysql_source
 ./run_test.sh 2 1 
 # run_test.sh: build 2 docker container, and each container has 1 EET test instance.
 # the first argument is the number of docker container

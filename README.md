@@ -39,11 +39,11 @@ Because EET randomly generates SQL queries, the queries generated in reviewers' 
 
 We provide scripts for automatically set up testing for latest versions of the supported database systems. EET has extensively tested these systems, and most of the bugs it found has been fixed in their latest versions.
 
-- [Test MySQL latest version]()
-- [Test PostgreSQL latest version]()
-- [Test SQLite latest version]()
-- [Test ClickHouse latest version]()
-- [Test TiDB latest version]()
+- [Test MySQL latest version](./docs/test/mysql_test_latest.md)
+- [Test PostgreSQL latest version](./docs/test/postgres_test_latest.md)
+- [Test SQLite latest version](./docs/test/sqlite_test_latest.md)
+- [Test ClickHouse latest version](./docs/test/sqlite_test_latest.md)
+- [Test TiDB latest version](./docs/test/tidb_test_latest.md)
 
 ### Recorded Bug-Triggering Queries
 

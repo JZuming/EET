@@ -1,4 +1,4 @@
-## Testing SQLite
+## Testing SQLite (commit 20e09ba)
 ### Set up testing
 ```shell
 mkdir sqlite_test
@@ -20,6 +20,7 @@ cd sqlite_test
 
 ### Stop testing
 ```shell
+# in test directory
 ./stop_docker.sh
 ```
 

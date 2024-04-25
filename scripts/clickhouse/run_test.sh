@@ -17,6 +17,8 @@ else
     echo "reset to commit 30464b9"
     cd ClickHouse
     git checkout 30464b9
+    echo "init submodules"
+    git submodule update --init
     cd ..
     echo "done"
 fi

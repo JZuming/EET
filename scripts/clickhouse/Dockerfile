@@ -33,7 +33,7 @@ RUN cp bin/cmake /usr/bin/
 WORKDIR /root
 COPY ClickHouse /root/ClickHouse
 WORKDIR /root/ClickHouse
-RUN git submodule update --init
+# RUN git submodule update --init
 # RUN git pull --recurse-submodules
 RUN mkdir build
 RUN cmake -S . -B build

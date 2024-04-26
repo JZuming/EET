@@ -30,14 +30,22 @@ do
 				docker exec -w $DIR -i $container-$m tail -30 test$n/$log_file | sed -n '/unexpected/,/trigger a memory bug/p' > bugs/$container-$m-test$n-$bug_type/unexpected.err
 			else # logic bug
 				db_setup=$container-$m:$DIR/test$n/minimized/db_setup.sql
+
 				origin_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'origin.sql')
 				origin=$container-$m:$DIR/test$n/minimized/$origin_path
+				origin_out_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'origin.out')
+				origin_out=$container-$m:$DIR/test$n/minimized/$origin_out_path
+
 				eet_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'qit.sql')
 				eet=$container-$m:$DIR/test$n/minimized/$eet_path
+				eet_out_path=$(docker exec -w $DIR/test$n/minimized -i $container-$m ls -1 | grep 'qit.out')
+				eet_out=$container-$m:$DIR/test$n/minimized/$eet_out_path
 
 				docker cp $db_setup bugs/$container-$m-test$n-$bug_type/db_setup.sql
 				docker cp $origin bugs/$container-$m-test$n-$bug_type/origin.sql
 				docker cp $eet bugs/$container-$m-test$n-$bug_type/eet.sql
+				docker cp $origin_out bugs/$container-$m-test$n-$bug_type/origin.out
+				docker cp $eet_out bugs/$container-$m-test$n-$bug_type/eet.out
 			fi
 			echo ""
 		fi

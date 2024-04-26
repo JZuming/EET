@@ -49,13 +49,15 @@ We provide scripts for automatically set up testing for latest versions of the s
 
 When an EET instance trigger a bug, EET will stop the testing campaign and record the bug-triggering queries.
 
-For each logic bug, EET records three SQL queries:
+For each logic bug, EET records the following:
 
-- *db_setup.sql*: this query is used to set up a database under test (e.g., create tables, insert rows).
+- *db_setup.sql*: this query is used to set up a database under test (e.g., create tables, insert rows)
 - *origin.sql*: a randomly generated query
 - *eet.sql*: the query transformed from origin.sql by _Equivalent Expression Transformation_.
+- *origin.out*: the output of origin.sql
+- *eet.out*: the output of eet.sql
 
-In principle, eet.sql and origin.sql should produce the same execution results. EET identifies a logic bug if the equivalence is violated.
+In principle, eet.sql and origin.sql should produce the same execution results (origin.out and eet.out should be the same). EET identifies a logic bug if their results differ.
 
 An example of a logic bug in PostgreSQL:
 
@@ -106,10 +108,11 @@ where (t5.pkey >= t5.vkey) <> (t5.c30 = (
       order by c_0 desc limit 1));
 ```
 
-For each non-logic bug (e.g., crash, internal error), EET record two SQL queries:
+For each non-logic bug (e.g., crash, internal error), EET records the following:
 
-- *db_setup.sql*: this query is used to set up a database under test (e.g., create tables, insert rows).
-- *unexpected.sql*: a randomly generated query that trigger a crash or an internal error.
+- *db_setup.sql*: this query is used to set up a database under test (e.g., create tables, insert rows)
+- *unexpected.sql*: a randomly generated query that triggers a crash or an internal error
+- *unexpected.err*: the error information caused by unexpected.sql
 
 An example of a crash in PostgreSQL:
 

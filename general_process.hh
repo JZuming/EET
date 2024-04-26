@@ -8,6 +8,8 @@
 #include <dut.hh> // for dut_base
 #include <sys/stat.h> // for mkdir
 #include <algorithm> // for sort
+#include <sys/time.h>
+#include <sys/wait.h>
 
 #include "config.h" // for PACKAGE_NAME
 
@@ -47,8 +49,6 @@
 
 #include "grammar.hh" // for statement gen
 #include "dbms_info.hh" // for dbms_info
-#include "transaction_test.hh" // for transaction
-#include "instrumentor.hh" // for stmt_usage
 
 extern "C" { //for sigusr1
 #include <stdlib.h>

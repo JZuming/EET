@@ -5,10 +5,6 @@ bin_PROGRAMS = eet
 AM_CPPFLAGS = -Dfuzz_test
 DUT = postgres.cc
 
-# if DUT_MONETDB
-# DUT += monetdb.cc
-# endif
-
 if DUT_SQLITE
 DUT += sqlite.cc
 AM_CPPFLAGS += -DHAVE_SQLITE
@@ -26,11 +22,6 @@ endif
 
 DUT += clickhouse.cc
 AM_CPPFLAGS += -DHAVE_CLICKHOUSE
-
-# if DUT_MARIADB
-# DUT += mariadb.cc
-# AM_CPPFLAGS += -DHAVE_MARIADB
-# endif
 
 QCN_TESTER_SRC = qcn_tester/qcn_tester.cc \
                 qcn_tester/qcn_select_tester.cc \

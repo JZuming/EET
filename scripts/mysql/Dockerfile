@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG TOOL_NAME=eet
+ARG TOOL_NAME=EET
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y apt-utils

@@ -43,7 +43,23 @@ void print_test_time_info() {
     return;
 }
 
-void minimize_qcn_database(shared_ptr<qcn_tester> qcn, string input_db_record_file, string output_db_record_file)
+void print_output_to_file(multiset<vector<string>> &output, string filename)
+{
+    ofstream ofile(filename);
+    for (auto& row : output) {
+        for (auto& str : row) {
+            ofile << str << " ";
+        }
+        ofile << "\n";
+    }
+    ofile.close();
+}
+
+void minimize_qcn_database(shared_ptr<qcn_tester> qcn, 
+                            string input_db_record_file, 
+                            string output_db_record_file,
+                            multiset<vector<string>>* min_origin_output,
+                            multiset<vector<string>>* min_qit_output)
 {
     vector<string> stmt_queue;
     ifstream stmt_file(input_db_record_file);
@@ -119,6 +135,10 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn, string input_db_record_fi
         bool trigger_bug = qcn->qcn_test_without_initialization();
         if (trigger_bug == false) {
             cout << "successfully remove the stmt" << endl;
+            if (min_origin_output)
+                *min_origin_output = qcn->original_query_result;
+            if (min_qit_output)
+                *min_qit_output = qcn->qit_query_result;
             cout << "-----------------" << endl;
             continue;
         }
@@ -317,14 +337,21 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
                     qcn->qcn_test_without_initialization(); // get latest results
                     qcn->save_testcase("minimized");
 
-                    cerr << "origin output:" << endl;
-                    qcn->print_stmt_output(qcn->original_query_result);
-                    cerr << "qit output:" << endl;
-                    qcn->print_stmt_output(qcn->qit_query_result);
-                    qcn->print_origin_qit_difference();
+                    // cerr << "origin output:" << endl;
+                    // qcn->print_stmt_output(qcn->original_query_result);
+                    // cerr << "qit output:" << endl;
+                    // qcn->print_stmt_output(qcn->qit_query_result);
+                    // qcn->print_origin_qit_difference();
 
                     // reduce database
-                    minimize_qcn_database(qcn, DB_RECORD_FILE, "minimized/" + string(DB_RECORD_FILE));
+                    multiset<vector<string>> min_origin_result = qcn->original_query_result;
+                    multiset<vector<string>> min_qit_result = qcn->qit_query_result;
+                    minimize_qcn_database(qcn, DB_RECORD_FILE, 
+                                            "minimized/" + string(DB_RECORD_FILE), 
+                                            &min_origin_result,
+                                            &min_qit_result);
+                    print_output_to_file(min_origin_result, "minimized/origin.out");
+                    print_output_to_file(min_qit_result, "minimized/qit.out");
                     exit(EXIT_FAILURE);
                 }
                 executed_test_num ++;

@@ -727,6 +727,7 @@ static bool is_expected_error(string error)
         || error.find("numeric field overflow") != string::npos
         || error.find("could not create unique index") != string::npos
         || error.find("Unicode categorization can only be performed if server encoding is UTF8") != string::npos
+        || error.find("invalid type name") != string::npos
         )
         return true;
 

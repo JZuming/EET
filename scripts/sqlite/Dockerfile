@@ -32,7 +32,6 @@ RUN autoreconf -if
 RUN ./configure 
 RUN make clean; make -j
 
-RUN git config --global credential.helper store
 WORKDIR /root
 RUN mkdir test
 ENV ASAN_OPTIONS=detect_leaks=0

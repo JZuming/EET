@@ -47,10 +47,6 @@ RUN autoreconf -if
 RUN ./configure 
 RUN make clean; make -j
 
-RUN git config user.name "zuming"
-RUN git config user.email "zuming.jiang@inf.ethz.ch"
-RUN git config --global credential.helper store
-
 USER root
 WORKDIR /home/$USER_NAME
 RUN mkdir test

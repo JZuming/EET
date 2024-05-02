@@ -2,7 +2,7 @@
 n=1
 export ASAN_OPTIONS=detect_leaks=0
 nohup /usr/local/mysql/bin/mysqld_safe &
-sleep 3s
+sleep 10s
 
 echo "test number: "$1
 test_num=$1

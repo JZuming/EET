@@ -20,7 +20,7 @@ fi
 
 export ASAN_OPTIONS=detect_leaks=0
 /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start
-sleep 3s
+sleep 10s
 
 echo "test number: "$1
 test_num=$1

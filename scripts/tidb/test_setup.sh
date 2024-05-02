@@ -3,7 +3,7 @@
 n=1
 
 nohup /root/tidb/bin/tidb-server >> server_log 2>&1 &
-sleep 3s
+sleep 10s
 
 echo "test number: "$1
 test_num=$1

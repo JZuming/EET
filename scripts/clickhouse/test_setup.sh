@@ -21,7 +21,7 @@ fi
 mkdir server
 cd server
 tmux new -d -s server 'clickhouse server -L server_log'
-sleep 3s
+sleep 10s
 cd ../
 
 echo "test number: "$1

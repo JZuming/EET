@@ -23,7 +23,7 @@ We provide scripts to quickly set up the necessary environments in docker and te
 
 ### Artifact Evaluation
 
-For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems within one hour.
+For artifact evaluation, we provide scripts to automatically test specified versions (the version evaluated in the paper) of the supported database systems. You can use these scripts to fairly evaluate the effectiveness of EET on finding database bugs. We expect that EET can quickly find bugs in each database systems.
 
 _Notice: When EET found a bug in the tested database system, it stopped testing and record the bug-triggering queries. Then, we reported the bug to developers and applied their fixes. In this way, we could avoid the case that EET produce a lot of redundant queries triggering the same bug._
 

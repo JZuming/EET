@@ -132,8 +132,16 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
         }
 
         // check whether the bug still exists
-        bool trigger_bug = qcn->qcn_test_without_initialization();
-        if (trigger_bug == false) {
+        bool no_trigger_bug = true;
+        trigger_error = false;
+        try {
+            no_trigger_bug = qcn->qcn_test_without_initialization();
+        } catch (exception& e) {
+            trigger_error = true;
+            break;
+        }
+
+        if (trigger_error == false && no_trigger_bug == false) {
             cout << "successfully remove the stmt" << endl;
             if (min_origin_output)
                 *min_origin_output = qcn->original_query_result;

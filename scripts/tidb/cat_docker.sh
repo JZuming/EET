@@ -7,6 +7,8 @@ container=$tool-development-tidb
 log_file=log
 DIR=/root/test
 
+rm bugs/ -rf
+
 docker_num=$(docker ps | grep $container |wc -l)
 while [ $m -le $docker_num ]
 do

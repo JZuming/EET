@@ -5,7 +5,9 @@ m=1
 tool=eet
 container=$tool-development-postgres
 log_file=log
-DIR=/home/zuming/test
+DIR=/home/zuming/
+
+rm bugs/ -rf
 
 docker_num=$(docker ps | grep $container |wc -l)
 while [ $m -le $docker_num ]

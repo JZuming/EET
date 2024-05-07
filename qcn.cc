@@ -66,6 +66,8 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
     stringstream buffer;
     buffer << stmt_file.rdbuf();
     stmt_file.close();
+    auto tmp_ignore_crash = qcn->ignore_crash;
+    qcn->ignore_crash = true;
 
     string stmts(buffer.str());
     int old_off = 0;
@@ -138,7 +140,7 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
             no_trigger_bug = qcn->qcn_test_without_initialization();
         } catch (exception& e) {
             trigger_error = true;
-            break;
+            continue;
         }
 
         if (trigger_error == false && no_trigger_bug == false) {
@@ -161,6 +163,8 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
         new_stmt_file << stmt_queue[i] << endl;
     }
     new_stmt_file.close();
+
+    qcn->ignore_crash = tmp_ignore_crash;
 
     return;
 }

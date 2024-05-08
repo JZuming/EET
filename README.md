@@ -134,7 +134,7 @@ We provide more information about EET in case you are interested.
 
 ### Compile EET in Debian
 ```shell
-apt-get install -y g++ build-essential autoconf autoconf-archive libboost-regex-dev
+apt-get install -y g++ build-essential autoconf autoconf-archive libboost-regex-dev libpq-dev libpqxx-dev
 git clone https://github.com/JZuming/EET
 cd EET
 autoreconf -if

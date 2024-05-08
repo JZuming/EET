@@ -4,6 +4,8 @@ DOCKER_DIR="."
 TOOL_DIR="EET"
 TOOL_SRC_DIR="../"$TOOL_DIR
 
+set -e
+
 echo "copy the clickhouse qit scripts"
 cp $TOOL_SRC_DIR/scripts/clickhouse/* $DOCKER_DIR/
 cd $DOCKER_DIR
@@ -33,5 +35,7 @@ fi
 if [ $# -ge 2 ]; then
     test_each_docker=$2
 fi
+
+set +e
 
 ./build_docker.sh n y $docker_num $test_each_docker n

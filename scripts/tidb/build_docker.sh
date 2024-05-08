@@ -49,7 +49,10 @@ if [ "$answer" == "y" ]; then
     echo "use Dockerfile_asan"
     DOCKERFILE="Dockerfile_asan"
 fi
+
+set -e
 DOCKER_BUILDKIT=1 docker build -t $DOCKER_IMAGE_NAME -f $DOCKERFILE .
+set +e
 
 rm $DOCKER_DIR/$TOOL_DIR -rf
 docker rmi $(docker image ls -f dangling=true -q)
@@ -87,6 +90,7 @@ fi
 ignore_crash=$answer
 
 # cp and run test_setup.sh
+set -e
 n=1
 while [ $n -le $docker_num ]
 do
@@ -96,3 +100,4 @@ do
     docker exec -i $DOCKER_CONTAINER_NAME-$n bash -c "cd /root/test; bash test_setup.sh $test_num $ignore_crash"
     n=$(( $n + 1))
 done
+set +e

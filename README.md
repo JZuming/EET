@@ -27,11 +27,11 @@ For artifact evaluation, we provide scripts to automatically test specified vers
 
 _Notice: When EET found a bug in the tested database system, it stopped testing and record the bug-triggering queries. Then, we reported the bug to developers and applied their fixes. In this way, we could avoid the case that EET produce a lot of redundant queries triggering the same bug._
 
-- [Test MySQL at version 8.0.34](./docs/test/mysql_test.md)
-- [Test PostgreSQL at commit 3f1aaaa](./docs/test/postgres_test.md)
-- [Test SQLite at commit 20e09ba](./docs/test/sqlite_test.md)
-- [Test ClickHouse at commit 30464b9](./docs/test/clickhouse_test.md)
-- [Test TiDB at commit f5ca27e](./docs/test/tidb_test.md)
+- Test MySQL at version 8.0.34: [mysql_test.md](./docs/test/mysql_test.md)
+- Test PostgreSQL at commit 3f1aaaa: [postgres_test.md](./docs/test/postgres_test.md)
+- Test SQLite at commit 20e09ba: [sqlite_test.md](./docs/test/sqlite_test.md)
+- Test ClickHouse at commit 30464b9: [clickhouse_test.md](./docs/test/clickhouse_test.md)
+- Test TiDB at commit f5ca27e: [tidb_test.md](./docs/test/tidb_test.md)
 
 Because EET randomly generates SQL queries, the queries generated in reviewers' artifact evaluation could be different from the queries we generated in our evaluation. To help reviewers accurately check the reproducibilty of EET, we provide two google sheets: [EET-Bug-Features](https://docs.google.com/spreadsheets/d/1DjdOJ-aHou6aPjOlvWj_f_QnXjm0F3Osc9JI5zv48r8/edit#gid=0) to validate Table 4 in our paper and [EET-Bug-Latency](https://docs.google.com/spreadsheets/d/1eXqx9rhpIsQemopG0qC_cj6yYqoRrcUT6ewC6uAGbf4/edit#gid=0) to validate Table 6 in our paper.
 
@@ -39,11 +39,11 @@ Because EET randomly generates SQL queries, the queries generated in reviewers' 
 
 We provide scripts for automatically set up testing for latest versions of the supported database systems. EET has extensively tested these systems, and most of the bugs it found has been fixed in their latest versions.
 
-- [Test MySQL latest version](./docs/test/mysql_test_latest.md)
-- [Test PostgreSQL latest version](./docs/test/postgres_test_latest.md)
-- [Test SQLite latest version](./docs/test/sqlite_test_latest.md)
-- [Test ClickHouse latest version](./docs/test/sqlite_test_latest.md)
-- [Test TiDB latest version](./docs/test/tidb_test_latest.md)
+- Test MySQL latest version: [mysql_test_latest.md](./docs/test/mysql_test_latest.md)
+- Test PostgreSQL latest version: [postgres_test_latest.md](./docs/test/postgres_test_latest.md)
+- Test SQLite latest version: [sqlite_test_latest.md](./docs/test/sqlite_test_latest.md)
+- Test ClickHouse latest version: [sqlite_test_latest.md](./docs/test/sqlite_test_latest.md)
+- Test TiDB latest version: [tidb_test_latest.md](./docs/test/tidb_test_latest.md)
 
 ### Recorded Bug-Triggering Queries
 

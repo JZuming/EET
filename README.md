@@ -4,7 +4,18 @@
 
 EET is an automatic testing tool for detecting crashes and logic bugs in database systems. It integrates a general and highly-effective test oracle, _**E**quivalent **E**xpression **T**ransformation_, which can operate on arbitrary SQL queries to validate their execution. EET has successfully found many long-latent crashes and logic bugs, which cause database system to produce incorrect results for given SQL queries. EET was implemented on the top of [SQLsmith](https://github.com/anse1/sqlsmith).
 
-The paper based on this tool has been (conditionally) accepted by [OSDI 2024](https://www.usenix.org/conference/osdi24).
+## Publication
+
+The [paper](https://jzuming.github.io/paper/osdi24-jiang.pdf) based on this tool has been accepted by [OSDI 2024](https://www.usenix.org/conference/osdi24).
+
+```
+@inproceedings{jiang:eet,
+  title        = {{Detecting Logic Bugs in Database Engines via Equivalent Expression Transformation}},
+  author       = {Zu-Ming Jiang and Zhendong Su},
+  booktitle    = {Proceedings of the 18th USENIX Symposium on Operating Systems Design and Implementation (OSDI)},
+  year         = {2024},
+}
+```
 
 ## Supported Database Systems and Found Bugs
 ✅ MySQL (16 bugs listed in [here](./docs/bugs/mysql_bugs.md))

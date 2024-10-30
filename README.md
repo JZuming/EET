@@ -2,9 +2,9 @@
 
 <!-- ![reproduced badge](docs/usenixbadges-reproduced.png) -->
 <center>
-<img src="figures/usenixbadges-available.png" alt="available" width="70pt" style="margin-right: 10px;">
-<img src="figures/usenixbadges-functional.png" alt="functional" width="70pt" style="margin-right: 10px;">
-<img src="figures/usenixbadges-reproduced.png" alt="reproduced" width="70pt">
+<img src="figures/usenixbadges-available.png" alt="available" width="70pt" style="display: inline-block; margin-right: 10px;">
+<img src="figures/usenixbadges-functional.png" alt="functional" width="70pt" style="display: inline-block; margin-right: 10px;">
+<img src="figures/usenixbadges-reproduced.png" alt="reproduced" width="70pt" style="display: inline-block;">
 </center>
 
 ## Description

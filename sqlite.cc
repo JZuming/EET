@@ -152,8 +152,29 @@ schema_sqlite::schema_sqlite(string &conninfo, bool no_catalog)
             sqlite3_free(zErrMsg);
             throw e;
         }
+
+        // every base table has a hidden column row id
+        if (t->is_base_table) {
+            column c("rowid", sqltype::get("INTEGER"));
+            t->columns().push_back(c);
+        }
     }
     // cerr << "done." << endl;
+
+    // add generate_series
+    int start = d100();
+    int stop = start + d100();
+    int step = d12();
+    string gen_table = "generate_series(" + to_string(start) + ", " + 
+                            to_string(stop) + ", " + to_string(step) + ")";
+    table tab(gen_table, "main", false, false);
+    column c1("value", sqltype::get("INTEGER"));
+    column c2("rowid", sqltype::get("INTEGER"));
+    tab.columns().push_back(c1);
+    tab.columns().push_back(c2);
+    tables.push_back(tab);
+
+    // ----------------------------------
 
     booltype = sqltype::get("BOOLEAN");
     inttype = sqltype::get("INTEGER");

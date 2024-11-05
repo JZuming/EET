@@ -36,4 +36,4 @@ fi
 
 set +e
 
-./build_docker.sh n y $docker_num $test_each_docker n
+./build_docker.sh y y $docker_num $test_each_docker n

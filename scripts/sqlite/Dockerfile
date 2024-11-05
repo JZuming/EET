@@ -19,12 +19,12 @@ RUN mkdir build
 WORKDIR /root/sqlite_source/build
 RUN ../configure --disable-tcl
 RUN make -j
-RUN make install
+# RUN make install
 
 # get tool
 USER root
 RUN apt-get update
-RUN apt-get install -y build-essential autoconf autoconf-archive libpqxx-dev libboost-regex-dev
+RUN apt-get install -y build-essential autoconf autoconf-archive libpqxx-dev libboost-regex-dev libsqlite3-dev
 WORKDIR /root
 COPY $TOOL_NAME /root/$TOOL_NAME
 WORKDIR /root/$TOOL_NAME

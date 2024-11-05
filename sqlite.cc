@@ -21,6 +21,8 @@ static regex e_many_from("[\\s\\S]*too many FROM clause terms[\\s\\S]*");
 static regex e_out_of_memory("Runtime error[\\s\\S]*: out of memory[\\s\\S]*"); // caused by too many reference
 static regex e_no_table("Parse error[\\s\\S]*: no such table[\\s\\S]*"); // caused by too many reference
 static regex e_on_reference("Parse error[\\s\\S]*: ON clause references tables to its right[\\s\\S]*");
+static regex e_no_rowid("Parse error[\\s\\S]*: no such column: [\\s\\S]*rowid[\\s\\S]*");
+
 
 #define QUERY_TIMEOUT_S 6
 #define QUERY_TIMEOUT_US 0
@@ -202,8 +204,8 @@ schema_sqlite::schema_sqlite(string &conninfo, bool no_catalog)
     enable_analyze_stmt = true;
 
     supported_join_op.push_back("left outer");
-    supported_join_op.push_back("right outer");
-    supported_join_op.push_back("full outer");
+    // supported_join_op.push_back("right outer");
+    // supported_join_op.push_back("full outer");
     supported_join_op.push_back("inner");
     supported_join_op.push_back("cross");
 
@@ -616,7 +618,7 @@ void dut_sqlite::test(const string &stmt,
     testfile << stmt << endl;
     testfile << ";" << endl;
     testfile.close();
-    auto cmd = "timeout " + to_string(QUERY_TIMEOUT_S) + " sqlite3 " + db_file + " < sqlite3_test.sql > sqlite3_output 2> sqlite3_error";
+    auto cmd = "timeout " + to_string(QUERY_TIMEOUT_S) + " /root/sqlite_source/build/sqlite3 " + db_file + " < sqlite3_test.sql > sqlite3_output 2> sqlite3_error";
     if (cpu_affinity >= 0){
         cmd = "taskset -c " + to_string(cpu_affinity) + " " + cmd;
     }
@@ -648,6 +650,7 @@ void dut_sqlite::test(const string &stmt,
             || regex_match(err, e_out_of_memory)
             || regex_match(err, e_no_table)
             || regex_match(err, e_on_reference)
+            || regex_match(err, e_no_rowid)
             )
             throw runtime_error("sqlite3 expected error [" + err + "]");
         

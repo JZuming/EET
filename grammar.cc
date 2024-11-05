@@ -725,7 +725,9 @@ insert_stmt::insert_stmt(prod *p, struct scope *s, table *v, bool only_const)
     // select valued columns (all)
     for (auto& col : victim->columns()) {
         // if (col.name == PKEY_IDENT || col.name == VKEY_IDENT || d6() > 1) 
-            valued_column_name.push_back(col.name);
+        if (schema::target_dbms == "sqlite" && col.name == "rowid")
+            continue;
+        valued_column_name.push_back(col.name);
     }
 
     // should contain at least one column
@@ -835,6 +837,9 @@ set_list::set_list(prod *p, table *target) : prod(p), myscope(p->scope)
             }
 
             if (col.name == PKEY_IDENT)
+                continue;
+            
+            if (schema::target_dbms == "sqlite" && col.name == "rowid")
                 continue;
             
             if (d6() < 4)
@@ -1581,7 +1586,15 @@ create_index_stmt::create_index_stmt(prod *parent, struct scope *s)
     while (indexed_num > 0) {
         auto choice = dx(target_columns.size()) - 1;
         auto& indexed_column = target_columns[choice];
+        
+        if (indexed_column.name == "rowid" && schema::target_dbms == "sqlite") {
+            indexed_num--;
+            target_columns.erase(target_columns.begin() + choice);
+            continue;
+        }
+
         indexed_column_names.push_back(indexed_column.name);
+
         // adding order
         auto asc_choice = d6();
         if (asc_choice <= 2)
@@ -1729,6 +1742,8 @@ named_window::named_window(prod *p, struct scope *s):
     // order by all possible col ref, make the result determined
     for (auto r : scope->refs) {
         for (auto& c : (*r).columns()) {
+            // if (schema::target_dbms == "sqlite" && c.name == "rowid")
+            //     continue;
             auto col = make_shared<column_reference>(this, c.type, c.name, r->name);
             auto is_asc = d6() <= 3 ? true : false;
             order_by.push_back(make_pair<>(col, is_asc));

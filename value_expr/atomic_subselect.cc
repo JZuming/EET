@@ -62,14 +62,14 @@ void atomic_subselect::out(std::ostream &out)
 
     out << "(select ";
     if (agg)
-        out << agg->ident() << "(" << col->name << ")";
+        out << agg->ident() << "(" << tab->ident() << "." << col->name << ")";
     else
         out << col->name;
 
     out << " from " << tab->ident();
 
     if (!agg)
-        out << " order by " << col->name << " limit 1 offset " << offset;
+        out << " order by " << tab->ident() << "." << col->name << " limit 1 offset " << offset;
 
     out << ")";
     indent(out);

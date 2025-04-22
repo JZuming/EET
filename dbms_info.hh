@@ -15,6 +15,10 @@ struct dbms_info {
     int ouput_or_affect_num;
     bool can_trigger_error_in_txn;
 
+    // for yugabyte
+    string host_addr;
+    string yugabyte_psql_path;
+
     dbms_info(map<string,string>& options);
     dbms_info() {
         dbms_name = "";
@@ -22,14 +26,10 @@ struct dbms_info {
         test_port = 0;
         ouput_or_affect_num = 0;
         can_trigger_error_in_txn = false;
+
+        host_addr = "";
+        yugabyte_psql_path = "";
     };
-    void operator=(dbms_info& target) {
-        dbms_name = target.dbms_name;
-        test_db = target.test_db;
-        test_port = target.test_port;
-        ouput_or_affect_num = target.ouput_or_affect_num;
-        can_trigger_error_in_txn = target.can_trigger_error_in_txn;
-    }
 };
 
 #endif

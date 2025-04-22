@@ -45,6 +45,7 @@
 #endif
 #include "postgres.hh"
 #include "clickhouse.hh"
+#include "yugabyte.hh"
 // ---
 
 #include "grammar.hh" // for statement gen

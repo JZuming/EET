@@ -25,7 +25,7 @@ using boost::regex_match;
 using namespace std;
 
 #define DEFAULT_DB_TEST_TIME 50
-#define DB_RECORD_FILE "db_setup.sql"
+// #define DB_RECORD_FILE "db_setup.sql"
 
 unsigned long long test_start_timestamp_ms = 0;
 unsigned long long dbms_execution_ms = 0;
@@ -188,6 +188,7 @@ int main(int argc, char *argv[]) {
 ignore-crash|\
 sqlite|\
 postgres-db|postgres-port|\
+yugabyte-db|yugabyte-port|yugabyte-host|yugabyte-psql|\
 clickhouse-db|clickhouse-port|\
 tidb-db|tidb-port|\
 mysql-db|mysql-port|\
@@ -225,6 +226,10 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
 #endif
         "    --clickhouse-db=constr    ClickHouse tested database" << endl << 
         "    --clickhouse-port=int     ClickHouse server port number" << endl <<
+        "    --yugabyte-db=constr       YugaByte tested database" << endl <<
+        "    --yugabyte-port=int        YugaByte server port number" << endl <<
+        "    --yugabyte-host=constr     YugaByte server host address" << endl <<
+        "    --yugabyte-psql=constr     YugaByte psql path" << endl <<
         "    --db-test-num=int      number of qcn tests for each generated database" << endl <<
         "    --seed=int             seed RNG with specified int instead of PID" << endl <<
         "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl << 
@@ -238,6 +243,10 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
     cerr << "Test DBMS: " << d_info.dbms_name << endl;
     cerr << "Test database: " << d_info.test_db << endl;
     cerr << "Test port: " << d_info.test_port << endl;
+    if (d_info.dbms_name == "yugabyte") {
+        cerr << "Test host: " << d_info.host_addr << endl;
+        cerr << "Psql path: " << d_info.yugabyte_psql_path << endl;
+    }
     cerr << "----------------------------------" << endl;
 
     int db_test_time = DEFAULT_DB_TEST_TIME;

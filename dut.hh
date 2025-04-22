@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define DB_RECORD_FILE "db_setup.sql"
+
 namespace dut {
   
 struct failure : public std::exception {

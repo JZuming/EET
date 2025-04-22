@@ -69,9 +69,20 @@ dbms_info::dbms_info(map<string,string>& options)
         test_db = options["postgres-db"];
         can_trigger_error_in_txn = false;
     }
+    else if (options.count("yugabyte-db") && 
+                    options.count("yugabyte-port") &&
+                    options.count("yugabyte-host") &&
+                    options.count("yugabyte-psql")) {
+        dbms_name = "yugabyte";
+        test_port = stoi(options["yugabyte-port"]);
+        test_db = options["yugabyte-db"];
+        host_addr = options["yugabyte-host"];
+        yugabyte_psql_path = options["yugabyte-psql"];
+        can_trigger_error_in_txn = false;
+    }
     else {
-        cerr << "Sorry,  you should specify a dbms and its database, or your dbms is not supported" << endl;
-        throw runtime_error("Does not define target dbms and db");
+        cerr << "Sorry,  you should specify a dbms and its database, or your dbms is not supported, or you miss arguments" << endl;
+        throw runtime_error("Does not define target dbms and db in dbms_info::dbms_info()");
     }
 
     if (options.count("output-or-affect-num")) 

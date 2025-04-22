@@ -3,7 +3,7 @@
 bin_PROGRAMS = eet
 
 AM_CPPFLAGS = -Dfuzz_test
-DUT = postgres.cc
+DUT = postgres.cc yugabyte.cc
 
 if DUT_SQLITE
 DUT += sqlite.cc

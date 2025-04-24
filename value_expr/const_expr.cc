@@ -8,7 +8,8 @@ const_expr::const_expr(prod *p, sqltype *type_constraint)
     if (d9() == 1)
     {
         if (scope->schema->target_dbms == "postgres" ||
-                scope->schema->target_dbms == "yugabyte")
+                scope->schema->target_dbms == "yugabyte" ||
+                scope->schema->target_dbms == "cockroach")
             expr = string(scope->schema->null_literal) + "::" + type->name;
         else
             expr = scope->schema->null_literal;
@@ -68,7 +69,8 @@ const_expr::const_expr(prod *p, sqltype *type_constraint)
             expr = expr + to_string(second) + ")";
         }
         else if (scope->schema->target_dbms == "postgres"||
-                scope->schema->target_dbms == "yugabyte") {
+                scope->schema->target_dbms == "yugabyte" ||
+                scope->schema->target_dbms == "cockroach") {
             expr = "make_timestamp(";
             expr = expr + to_string(year) + ", ";
             expr = expr + to_string(month) + ", ";
@@ -99,7 +101,8 @@ const_expr::const_expr(prod *p, sqltype *type_constraint)
     }
 
     if (scope->schema->target_dbms == "postgres" ||
-            scope->schema->target_dbms == "yugabyte")
+            scope->schema->target_dbms == "yugabyte" ||
+            scope->schema->target_dbms == "cockroach")
         expr = string(scope->schema->null_literal) + "::" + type->name;
     else
         expr = scope->schema->null_literal;

@@ -57,12 +57,6 @@ dbms_info::dbms_info(map<string,string>& options)
         test_db = options["clickhouse-db"];
         can_trigger_error_in_txn = false;
     } 
-    else if (options.count("cockroach-db") && options.count("cockroach-port")) {
-        dbms_name = "cockroach";
-        test_port = stoi(options["cockroach-port"]);
-        test_db = options["cockroach-db"];
-        can_trigger_error_in_txn = false;
-    } 
     else if (options.count("postgres-db") && options.count("postgres-port")) {
         dbms_name = "postgres";
         test_port = stoi(options["postgres-port"]);
@@ -78,6 +72,15 @@ dbms_info::dbms_info(map<string,string>& options)
         test_db = options["yugabyte-db"];
         host_addr = options["yugabyte-host"];
         yugabyte_psql_path = options["yugabyte-psql"];
+        can_trigger_error_in_txn = false;
+    }
+    else if (options.count("cockroach-db") && 
+                    options.count("cockroach-port") &&
+                    options.count("cockroach-host")) {
+        dbms_name = "cockroach";
+        test_port = stoi(options["cockroach-port"]);
+        test_db = options["cockroach-db"];
+        host_addr = options["cockroach-host"];
         can_trigger_error_in_txn = false;
     }
     else {

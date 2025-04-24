@@ -14,9 +14,9 @@ struct dbms_info {
     int test_port;
     int ouput_or_affect_num;
     bool can_trigger_error_in_txn;
+    string host_addr;
 
     // for yugabyte
-    string host_addr;
     string yugabyte_psql_path;
 
     dbms_info(map<string,string>& options);

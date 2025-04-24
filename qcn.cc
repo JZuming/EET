@@ -188,6 +188,7 @@ int main(int argc, char *argv[]) {
 ignore-crash|\
 sqlite|\
 postgres-db|postgres-port|\
+cockroach-db|cockroach-port|cockroach-host|\
 yugabyte-db|yugabyte-port|yugabyte-host|yugabyte-psql|\
 clickhouse-db|clickhouse-port|\
 tidb-db|tidb-port|\
@@ -226,6 +227,9 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
 #endif
         "    --clickhouse-db=constr    ClickHouse tested database" << endl << 
         "    --clickhouse-port=int     ClickHouse server port number" << endl <<
+        "    --cockroach-db=constr       CockroachDB tested database" << endl <<
+        "    --cockroach-port=int        CockroachDB server port number" << endl <<
+        "    --cockroach-host=constr     CockroachDB server host address" << endl <<
         "    --yugabyte-db=constr       YugaByte tested database" << endl <<
         "    --yugabyte-port=int        YugaByte server port number" << endl <<
         "    --yugabyte-host=constr     YugaByte server host address" << endl <<
@@ -243,10 +247,7 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
     cerr << "Test DBMS: " << d_info.dbms_name << endl;
     cerr << "Test database: " << d_info.test_db << endl;
     cerr << "Test port: " << d_info.test_port << endl;
-    if (d_info.dbms_name == "yugabyte") {
-        cerr << "Test host: " << d_info.host_addr << endl;
-        cerr << "Psql path: " << d_info.yugabyte_psql_path << endl;
-    }
+    cerr << "Test host: " << d_info.host_addr << endl;
     cerr << "----------------------------------" << endl;
 
     int db_test_time = DEFAULT_DB_TEST_TIME;

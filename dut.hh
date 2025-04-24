@@ -62,4 +62,7 @@ struct dut_base {
   // virtual string get_process_id() = 0;
 };
 
+
+vector<string> process_dbrecord_into_sqls(string db_record_file);
+
 #endif

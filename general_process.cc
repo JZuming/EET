@@ -70,6 +70,8 @@ shared_ptr<schema> get_schema(dbms_info& d_info)
             schema = make_shared<schema_clickhouse>(d_info.test_db, d_info.test_port);
         else if (d_info.dbms_name == "yugabyte")
             schema = make_shared<schema_yugabyte>(d_info.test_db, d_info.test_port, d_info.host_addr, true);
+        else if (d_info.dbms_name == "cockroach")
+            schema = make_shared<schema_cockroach>(d_info.test_db, d_info.test_port, d_info.host_addr, true);
         else {
             cerr << d_info.dbms_name << " is not supported yet in get_schema()" << endl;
             throw runtime_error("Unsupported DBMS in get_schema()");
@@ -141,6 +143,8 @@ shared_ptr<dut_base> dut_setup(dbms_info& d_info)
         dut = make_shared<dut_libpq>(d_info.test_db, d_info.test_port);
     else if (d_info.dbms_name == "yugabyte")
         dut = make_shared<dut_yugabyte>(d_info.test_db, d_info.test_port, d_info.host_addr, d_info.yugabyte_psql_path);
+    else if (d_info.dbms_name == "cockroach")
+        dut = make_shared<dut_cockroach>(d_info.test_db, d_info.test_port, d_info.host_addr);
     else {
         cerr << d_info.dbms_name << " is not installed, or it is not supported yet in dut_setup()" << endl;
         throw runtime_error("Unsupported DBMS in dut_setup()");
@@ -196,6 +200,8 @@ int save_backup_file(string path, dbms_info& d_info)
         return dut_libpq::save_backup_file(d_info.test_db, path);
     else if (d_info.dbms_name == "yugabyte")
         return dut_yugabyte::save_backup_file(d_info.test_db, path);
+    else if (d_info.dbms_name == "cockroach")
+        return dut_cockroach::save_backup_file(d_info.test_db, path);
     else if (d_info.dbms_name == "clickhouse") {
         string cmd = "cp " + string(DB_RECORD_FILE) + " " + path;
         return system(cmd.c_str());
@@ -249,6 +255,10 @@ pid_t fork_db_server(dbms_info& d_info)
         // fork_pid = dut_libpq::fork_db_server();
     }
     else if (d_info.dbms_name == "yugabyte") {
+        // Do nothing, because the server crash means there is a bug
+        // fork_pid = dut_libpq::fork_db_server();
+    }
+    else if (d_info.dbms_name == "cockroach") {
         // Do nothing, because the server crash means there is a bug
         // fork_pid = dut_libpq::fork_db_server();
     }
@@ -410,7 +420,9 @@ void normal_test(dbms_info& d_info,
         }
         if (try_time >= 8) {
             cerr << "Fail in normal_test() " << try_time << " times, return" << endl;
-            cerr << err << endl;
+            cerr << "SQL: " << sql << endl;
+            cerr << "ERR: " << err << endl;
+            abort();
             throw;
         }
         try_time++;

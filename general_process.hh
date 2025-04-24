@@ -40,12 +40,10 @@
 #include "monetdb.hh"
 #endif
 
-#ifdef HAVE_COCKROACH
-#include "cockroachdb.hh"
-#endif
 #include "postgres.hh"
 #include "clickhouse.hh"
 #include "yugabyte.hh"
+#include "cockroach.hh"
 // ---
 
 #include "grammar.hh" // for statement gen

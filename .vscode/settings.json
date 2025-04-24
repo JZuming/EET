@@ -91,6 +91,7 @@
         "concepts": "cpp",
         "ranges": "cpp",
         "stop_token": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "pqxx": "cpp"
     }
 }

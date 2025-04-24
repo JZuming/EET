@@ -29,7 +29,8 @@ void const_bool::out(std::ostream &out)
 {
     if (!is_transformed) {
         if (scope->schema->target_dbms == "postgres" ||
-                scope->schema->target_dbms == "yugabyte")
+                scope->schema->target_dbms == "yugabyte" ||
+                scope->schema->target_dbms == "cockroach")
             out << op << "::" << scope->schema->booltype->name;
         else
             out << op;

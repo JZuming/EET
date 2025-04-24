@@ -422,7 +422,6 @@ void normal_test(dbms_info& d_info,
             cerr << "Fail in normal_test() " << try_time << " times, return" << endl;
             cerr << "SQL: " << sql << endl;
             cerr << "ERR: " << err << endl;
-            abort();
             throw;
         }
         try_time++;

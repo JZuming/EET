@@ -260,7 +260,10 @@ schema_yugabyte::schema_yugabyte(string db, unsigned int port, string host, bool
     supported_join_op.push_back("right outer");
     supported_join_op.push_back("full outer");
     
-    // // Planner Method Configuration
+    // Setting Configuration
+    supported_setting["yb_enable_optimizer_statistics"] = vector<string>({"on", "off"});
+    supported_setting["yb_enable_base_scans_cost_model"] = vector<string>({"on", "off"});
+
     // supported_setting["enable_async_append"] = vector<string>({"on", "off"});
     // supported_setting["enable_bitmapscan"] = vector<string>({"on", "off"});
     // supported_setting["enable_gathermerge"] = vector<string>({"on", "off"});
@@ -704,7 +707,7 @@ void dut_yugabyte::test(const string &stmt,
     if (env_setting_stmts != NULL) {
         for (auto& set_statement : *env_setting_stmts) {
             auto res = PQexec(conn, set_statement.c_str());
-            // cerr << "setting: " << set_statement << endl;
+            cerr << "setting: " << set_statement << endl;
             auto status = PQresultStatus(res);
             if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK) {
                 string err = PQerrorMessage(conn);

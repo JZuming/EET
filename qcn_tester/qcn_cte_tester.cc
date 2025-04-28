@@ -124,6 +124,7 @@ void qcn_cte_tester::save_testcase(string dir)
     save_backup_file(dir, tested_dbms_info);
     save_query(dir, "cte_origin.sql", original_query);
     save_query(dir, "cte_qit.sql", qit_query);
+    save_queries(dir, "env_stmts.sql", env_setting_stmts);
 }
 
 void qcn_cte_tester::minimize_testcase()

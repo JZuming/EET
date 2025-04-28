@@ -127,6 +127,7 @@ void qcn_update_tester::save_testcase(string dir)
     save_backup_file(dir, tested_dbms_info);
     save_query(dir, "update_origin.sql", original_query);
     save_query(dir, "update_qit.sql", qit_query);
+    save_queries(dir, "env_stmts.sql", env_setting_stmts);
 }
 
 void qcn_update_tester::minimize_testcase()

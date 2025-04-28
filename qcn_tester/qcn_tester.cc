@@ -61,6 +61,7 @@ void qcn_tester::execute_get_changed_results(string query, string table_name,
         if (!expected && ignore_crash == false) {
             save_query(".", "unexpected.sql", query);
             save_backup_file(".", tested_dbms_info);
+            save_queries(".", "env_stmts.sql", env_setting_stmts);
             cerr << "unexpected error: " << err << endl;
             abort(); // stop if trigger unexpected error
         } else if (!expected) {
@@ -110,6 +111,7 @@ void qcn_tester::execute_query(string query, multiset<row_output>& result)
         if (!expected && ignore_crash == false) {
             save_query(".", "unexpected.sql", query);
             save_backup_file(".", tested_dbms_info);
+            save_queries(".", "env_stmts.sql", env_setting_stmts);
             cerr << "unexpected error: " << err << endl;
             abort(); // stop if trigger unexpected error
         } else if (!expected) {
@@ -133,9 +135,22 @@ qcn_tester::qcn_tester(dbms_info& info, shared_ptr<schema> schema) {
     generated_db_schema = schema;
     generated_db_schema->fill_scope(initial_scope);
 
-    while (!generated_db_schema->supported_setting.empty() && d6() <= 4) {
+    while (!generated_db_schema->supported_setting.empty() && 
+            env_setting_stmts.size() < generated_db_schema->supported_setting.size() && 
+            d6() <= 4) {
         auto set_statement = make_shared<set_stmt>((struct prod *)0, &initial_scope);
         // don't test set statement, developer should guarentee it is always valid
+        
+        bool has_this_setting = false;
+        for (auto stmt:env_setting_stmts) {
+            if (stmt.find(set_statement->parm) != string::npos) {
+                has_this_setting = true;
+                break;
+            }
+        }
+
+        if (has_this_setting == true)
+            continue;
 
         ostringstream s;
         set_statement->out(s);

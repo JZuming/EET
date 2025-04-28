@@ -160,6 +160,15 @@ void save_query(string dir, string filename, string& query)
     s.close();
 }
 
+void save_queries(string dir, string filename, vector<string>& queries)
+{
+    ofstream s(dir + "/" + filename, ios::app);
+    for (auto query : queries) {
+        s << query << ";" << endl;
+    }
+    s.close();
+}
+
 int save_backup_file(string path, dbms_info& d_info)
 {
     if (false) {}

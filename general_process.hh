@@ -108,6 +108,8 @@ pid_t fork_db_server(dbms_info& d_info);
 shared_ptr<schema> get_schema(dbms_info& d_info);
 shared_ptr<dut_base> dut_setup(dbms_info& d_info);
 void save_query(string dir, string filename, string& query);
+void save_queries(string dir, string filename, vector<string>& queries);
+
 int save_backup_file(string path, dbms_info& d_info);
 
 void user_signal(int signal);

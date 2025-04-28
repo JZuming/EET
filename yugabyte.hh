@@ -65,8 +65,6 @@ struct schema_yugabyte : schema, yugabyte_connection {
 // };
 
 struct dut_yugabyte : dut_base, yugabyte_connection {
-    string psql_exec_path;
-    
     virtual void test(const string &stmt, 
                     vector<vector<string>>* output = NULL, 
                     int* affected_row_num = NULL,
@@ -79,5 +77,5 @@ struct dut_yugabyte : dut_base, yugabyte_connection {
     virtual void get_content(vector<string>& tables_name, map<string, vector<vector<string>>>& content);
 
     static int save_backup_file(string db_name, string path);
-    dut_yugabyte(string db, unsigned int port, string host, string psql_path);
+    dut_yugabyte(string db, unsigned int port, string host);
 };

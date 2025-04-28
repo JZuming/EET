@@ -189,7 +189,7 @@ ignore-crash|\
 sqlite|\
 postgres-db|postgres-port|\
 cockroach-db|cockroach-port|cockroach-host|\
-yugabyte-db|yugabyte-port|yugabyte-host|yugabyte-psql|\
+yugabyte-db|yugabyte-port|yugabyte-host|\
 clickhouse-db|clickhouse-port|\
 tidb-db|tidb-port|\
 mysql-db|mysql-port|\
@@ -233,7 +233,6 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
         "    --yugabyte-db=constr       YugaByte tested database" << endl <<
         "    --yugabyte-port=int        YugaByte server port number" << endl <<
         "    --yugabyte-host=constr     YugaByte server host address" << endl <<
-        "    --yugabyte-psql=constr     YugaByte psql path" << endl <<
         "    --db-test-num=int      number of qcn tests for each generated database" << endl <<
         "    --seed=int             seed RNG with specified int instead of PID" << endl <<
         "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl << 

@@ -611,10 +611,9 @@ yugabyte_connection::~yugabyte_connection()
     PQfinish(conn);
 }
 
-dut_yugabyte::dut_yugabyte(string db, unsigned int port, string host, string psql_path)
+dut_yugabyte::dut_yugabyte(string db, unsigned int port, string host)
     : yugabyte_connection(db, port, host)
 {
-    psql_exec_path = psql_path;
     // string set_timeout_cmd = "SET statement_timeout = '" + to_string(YUGABYTE_TIMEOUT_SECOND) + "s';";
     // test(set_timeout_cmd, NULL, NULL);
 }
@@ -826,22 +825,9 @@ void dut_yugabyte::backup(void)
 void dut_yugabyte::reset_to_backup(void)
 {
     reset();
-    // string bk_file = YUGABYTE_BK_FILE(test_db);
-    // if (access(bk_file.c_str(), F_OK ) == -1) 
-    //     return;
-    
-    PQfinish(conn);
-    
-    string pgsql_source = psql_exec_path + " -p " + to_string(test_port) 
-                        + " -h " + host_addr + " " + test_db + " < " 
-                        + DB_RECORD_FILE + " 1> /dev/null";
-    if (system(pgsql_source.c_str()) == -1) 
-        throw std::runtime_error(string("system() error, return -1") + "\nLocation: " + debug_info);
-
-    conn = PQsetdbLogin(host_addr.c_str(), to_string(test_port).c_str(), NULL, NULL, test_db.c_str(), YUGABYTE_ROLE, NULL);
-    if (PQstatus(conn) != CONNECTION_OK) {
-        string err = PQerrorMessage(conn);
-        throw runtime_error("[CONNECTION FAIL] " + err + " in " + debug_info);
+    auto stmt_queue = process_dbrecord_into_sqls(DB_RECORD_FILE);
+    for (auto stmt : stmt_queue) {
+        test(stmt);
     }
 }
 

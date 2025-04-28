@@ -16,9 +16,6 @@ struct dbms_info {
     bool can_trigger_error_in_txn;
     string host_addr;
 
-    // for yugabyte
-    string yugabyte_psql_path;
-
     dbms_info(map<string,string>& options);
     dbms_info() {
         dbms_name = "";
@@ -28,7 +25,6 @@ struct dbms_info {
         can_trigger_error_in_txn = false;
 
         host_addr = "";
-        yugabyte_psql_path = "";
     };
 };
 

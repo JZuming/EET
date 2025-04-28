@@ -142,7 +142,7 @@ shared_ptr<dut_base> dut_setup(dbms_info& d_info)
     else if (d_info.dbms_name == "postgres")
         dut = make_shared<dut_libpq>(d_info.test_db, d_info.test_port);
     else if (d_info.dbms_name == "yugabyte")
-        dut = make_shared<dut_yugabyte>(d_info.test_db, d_info.test_port, d_info.host_addr, d_info.yugabyte_psql_path);
+        dut = make_shared<dut_yugabyte>(d_info.test_db, d_info.test_port, d_info.host_addr);
     else if (d_info.dbms_name == "cockroach")
         dut = make_shared<dut_cockroach>(d_info.test_db, d_info.test_port, d_info.host_addr);
     else {

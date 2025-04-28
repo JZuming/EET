@@ -694,7 +694,7 @@ void gen_stmts_for_one_txn(shared_ptr<schema> &db_schema,
                     cerr << err << endl;
                     ofstream bug_file(NORMAL_BUG_FILE);
                     for (auto& stmt : all_tested_stmts) 
-                        bug_file << print_stmt_to_string(stmt) << "\n" << endl;
+                        bug_file << print_stmt_to_string(stmt) << ";\n" << endl;
                     bug_file.close();
                     throw;
                 }
@@ -828,5 +828,5 @@ string print_stmt_to_string(shared_ptr<prod> stmt)
 {
     ostringstream stmt_stream;
     stmt->out(stmt_stream);
-    return stmt_stream.str() + ";";
+    return stmt_stream.str();
 }

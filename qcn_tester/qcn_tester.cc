@@ -135,9 +135,24 @@ qcn_tester::qcn_tester(dbms_info& info, shared_ptr<schema> schema) {
     generated_db_schema = schema;
     generated_db_schema->fill_scope(initial_scope);
 
+    if (info.dbms_name == "yugabyte") {
+        initial_scope.new_stmt();
+        auto set_statement_1 = make_shared<set_stmt>((struct prod *)0, &initial_scope);
+        set_statement_1->parm = "yb_enable_optimizer_statistics";
+        set_statement_1->value = "on";
+        env_setting_stmts.push_back(print_stmt_to_string(set_statement_1));
+
+        initial_scope.new_stmt();
+        auto set_statement_2 = make_shared<set_stmt>((struct prod *)0, &initial_scope);
+        set_statement_2->parm = "yb_enable_base_scans_cost_model";
+        set_statement_2->value = "on";
+        env_setting_stmts.push_back(print_stmt_to_string(set_statement_2));
+    }
+    
     while (!generated_db_schema->supported_setting.empty() && 
             env_setting_stmts.size() < generated_db_schema->supported_setting.size() && 
             d6() <= 4) {
+        initial_scope.new_stmt();
         auto set_statement = make_shared<set_stmt>((struct prod *)0, &initial_scope);
         // don't test set statement, developer should guarentee it is always valid
         
@@ -157,8 +172,10 @@ qcn_tester::qcn_tester(dbms_info& info, shared_ptr<schema> schema) {
         auto set_stmt_str = s.str();
         s.clear();
         env_setting_stmts.push_back(set_stmt_str);
+    }
 
-        cerr << "setting: " << set_stmt_str << endl;
+    for (auto stmt : env_setting_stmts) {
+        cerr << "setting: " << stmt << endl;
     }
 }
 

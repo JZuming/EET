@@ -707,7 +707,7 @@ void dut_yugabyte::test(const string &stmt,
     if (env_setting_stmts != NULL) {
         for (auto& set_statement : *env_setting_stmts) {
             auto res = PQexec(conn, set_statement.c_str());
-            cerr << "setting: " << set_statement << endl;
+            // cerr << "setting: " << set_statement << endl;
             auto status = PQresultStatus(res);
             if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK) {
                 string err = PQerrorMessage(conn);

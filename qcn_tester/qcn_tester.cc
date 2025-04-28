@@ -157,6 +157,8 @@ qcn_tester::qcn_tester(dbms_info& info, shared_ptr<schema> schema) {
         auto set_stmt_str = s.str();
         s.clear();
         env_setting_stmts.push_back(set_stmt_str);
+
+        cerr << "setting: " << set_stmt_str << endl;
     }
 }
 

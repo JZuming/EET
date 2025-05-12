@@ -221,7 +221,7 @@ schema_ob::schema_ob(string db, unsigned int port, string host)
         mysql_free_result(result);
     }
 
-    target_dbms = "mysql";
+    target_dbms = "oceanbase";
 
     booltype = sqltype::get("tinyint");
     inttype = sqltype::get("int");

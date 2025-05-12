@@ -11,46 +11,29 @@ dbms_info::dbms_info(map<string,string>& options)
         can_trigger_error_in_txn = true;
     }
     #endif 
-    #ifdef HAVE_TIDB
+
+    #ifdef HAVE_LIBMYSQLCLIENT
     else if (options.count("tidb-db") && options.count("tidb-port")) {
         dbms_name = "tidb";
         test_port = stoi(options["tidb-port"]);
         test_db = options["tidb-db"];
         can_trigger_error_in_txn = true;
     }
-    #endif
-    #ifdef HAVE_MYSQL
     else if (options.count("mysql-db") && options.count("mysql-port")) {
         dbms_name = "mysql";
         test_port = stoi(options["mysql-port"]);
         test_db = options["mysql-db"];
         can_trigger_error_in_txn = true;
     }
-    #endif
-    #ifdef HAVE_MARIADB
-    else if (options.count("mariadb-db") && options.count("mariadb-port")) {
-        dbms_name = "mariadb";
-        test_port = stoi(options["mariadb-port"]);
-        test_db = options["mariadb-db"];
-        can_trigger_error_in_txn = true;
-    }
-    #endif
-    #ifdef HAVE_OCEANBASE
-    else if (options.count("oceanbase-db") && options.count("oceanbase-port")) {
+    else if (options.count("oceanbase-db") && options.count("oceanbase-port") && options.count("oceanbase-host")) {
         dbms_name = "oceanbase";
         test_port = stoi(options["oceanbase-port"]);
         test_db = options["oceanbase-db"];
+        host_addr = options["oceanbase-host"];
         can_trigger_error_in_txn = true;
     }
     #endif 
-    #ifdef HAVE_MONETDB
-    else if (options.count("monetdb-db") && options.count("monetdb-port")) {
-        dbms_name = "monetdb";
-        test_port = stoi(options["monetdb-port"]);
-        test_db = options["monetdb-db"];
-        can_trigger_error_in_txn = false;
-    } 
-    #endif
+
     else if (options.count("clickhouse-db") && options.count("clickhouse-port")) {
         dbms_name = "clickhouse";
         test_port = stoi(options["clickhouse-port"]);

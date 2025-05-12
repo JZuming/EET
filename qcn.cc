@@ -193,7 +193,7 @@ yugabyte-db|yugabyte-port|yugabyte-host|\
 clickhouse-db|clickhouse-port|\
 tidb-db|tidb-port|\
 mysql-db|mysql-port|\
-mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
+oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
     
     for(char **opt = argv + 1 ;opt < argv + argc; opt++) {
         smatch match;
@@ -213,17 +213,14 @@ mariadb-db|mariadb-port)(?:=((?:.|\n)*))?");
 #ifdef HAVE_LIBSQLITE3
         "    --sqlite=URI           SQLite database to send queries to" << endl <<
 #endif
-#ifdef HAVE_MARIADB
-        "    --mariadb-db=constr    MariaDB database to send queries to, should be used with mariadb-port" << endl << 
-        "    --mariadb-port=int     MariaDB server port number, should be used with mariadb-db" << endl <<
-#endif
-#ifdef HAVE_MYSQL
+#ifdef HAVE_LIBMYSQLCLIENT
         "    --mysql-db=constr      MySQL database to send queries to, should be used with mysql-port" << endl << 
         "    --mysql-port=int       MySQL server port number, should be used with mysql-db" << endl << 
-#endif
-#ifdef HAVE_TIDB
         "    --tidb-db=constr   tidb database name to send queries to (should used with" << endl << 
         "    --tidb-port=int    tidb server port number" << endl << 
+        "    --oceanbase-db=constr      OceanBase database name to send queries to " << endl << 
+        "    --oceanbase-port=int       OceanBase server port number" << endl << 
+        "    --oceanbase-host=constr    OceanBase server host address" << endl <<
 #endif
         "    --clickhouse-db=constr    ClickHouse tested database" << endl << 
         "    --clickhouse-port=int     ClickHouse server port number" << endl <<

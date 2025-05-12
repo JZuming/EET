@@ -30,38 +30,18 @@ shared_ptr<schema> get_schema(dbms_info& d_info)
     auto schema_start = get_cur_time_ms();
     try {
         if (false) {}
-        #ifdef HAVE_SQLITE
+        #ifdef HAVE_LIBSQLITE3
         else if (d_info.dbms_name == "sqlite") 
             schema = make_shared<schema_sqlite>(d_info.test_db, true);
         #endif
 
         #ifdef HAVE_LIBMYSQLCLIENT
-        #ifdef HAVE_MYSQL
         else if (d_info.dbms_name == "mysql") 
             schema = make_shared<schema_mysql>(d_info.test_db, d_info.test_port);
-        #endif
-        #ifdef HAVE_MARIADB
-        else if (d_info.dbms_name == "mariadb") 
-            schema = make_shared<schema_mariadb>(d_info.test_db, d_info.test_port);
-        #endif
-        #ifdef HAVE_OCEANBASE
         else if (d_info.dbms_name == "oceanbase") 
-            schema = make_shared<schema_oceanbase>(d_info.test_db, d_info.test_port);
-        #endif
-        #ifdef HAVE_TIDB
+            schema = make_shared<schema_ob>(d_info.test_db, d_info.test_port, d_info.host_addr);
         else if (d_info.dbms_name == "tidb") 
             schema = make_shared<schema_tidb>(d_info.test_db, d_info.test_port);
-        #endif
-        #endif
-
-        #ifdef HAVE_MONETDB
-        else if (d_info.dbms_name == "monetdb") 
-            schema = make_shared<schema_monetdb>(d_info.test_db, d_info.test_port);
-        #endif
-
-        #ifdef HAVE_COCKROACH
-        else if (d_info.dbms_name == "cockroach")
-            schema = make_shared<schema_cockroachdb>(d_info.test_db, d_info.test_port);
         #endif
         
         else if (d_info.dbms_name == "postgres")
@@ -104,39 +84,20 @@ shared_ptr<dut_base> dut_setup(dbms_info& d_info)
 {
     shared_ptr<dut_base> dut;
     if (false) {}
-    #ifdef HAVE_SQLITE
+    #ifdef HAVE_LIBSQLITE3
     else if (d_info.dbms_name == "sqlite")
         dut = make_shared<dut_sqlite>(d_info.test_db);
     #endif
 
     #ifdef HAVE_LIBMYSQLCLIENT
-    #ifdef HAVE_MYSQL
     else if (d_info.dbms_name == "mysql")
         dut = make_shared<dut_mysql>(d_info.test_db, d_info.test_port);
-    #endif
-    #ifdef HAVE_MARIADB
-    else if (d_info.dbms_name == "mariadb")
-        dut = make_shared<dut_mariadb>(d_info.test_db, d_info.test_port);
-    #endif
-    #ifdef HAVE_OCEANBASE
     else if (d_info.dbms_name == "oceanbase")
-        dut = make_shared<dut_oceanbase>(d_info.test_db, d_info.test_port);
-    #endif
-    #ifdef HAVE_TIDB
+        dut = make_shared<dut_ob>(d_info.test_db, d_info.test_port, d_info.host_addr);
     else if (d_info.dbms_name == "tidb")
         dut = make_shared<dut_tidb>(d_info.test_db, d_info.test_port);
     #endif
-    #endif
 
-    #ifdef HAVE_MONETDB
-    else if (d_info.dbms_name == "monetdb")
-        dut = make_shared<dut_monetdb>(d_info.test_db, d_info.test_port);
-    #endif
-
-    #ifdef HAVE_COCKROACH
-    else if (d_info.dbms_name == "cockroach")
-        dut = make_shared<dut_cockroachdb>(d_info.test_db, d_info.test_port);
-    #endif
     else if (d_info.dbms_name == "clickhouse")
         dut = make_shared<dut_clickhouse>(d_info.test_db, d_info.test_port, DB_RECORD_FILE);
     else if (d_info.dbms_name == "postgres")
@@ -172,37 +133,19 @@ void save_queries(string dir, string filename, vector<string>& queries)
 int save_backup_file(string path, dbms_info& d_info)
 {
     if (false) {}
-    #ifdef HAVE_SQLITE
+    #ifdef HAVE_LIBSQLITE3
     else if (d_info.dbms_name == "sqlite")
         return dut_sqlite::save_backup_file(path, d_info.test_db);
     #endif
 
-    #ifdef HAVE_MYSQL
+    #ifdef HAVE_LIBMYSQLCLIENT
     else if (d_info.dbms_name == "mysql")
         return dut_mysql::save_backup_file(d_info.test_db, path);
-    #endif
-    #ifdef HAVE_MARIADB
-    else if (d_info.dbms_name == "mariadb")
-        return dut_mariadb::save_backup_file(path);
-    #endif
-    #ifdef HAVE_OCEANBASE
     else if (d_info.dbms_name == "oceanbase")
-        return dut_oceanbase::save_backup_file(path);
-    #endif
-    #ifdef HAVE_TIDB
+        return dut_ob::save_backup_file(d_info.test_db, path);
     else if (d_info.dbms_name == "tidb") {
         return dut_tidb::save_backup_file(d_info.test_db, path);
     }
-    #endif
-
-    #ifdef HAVE_MONETDB
-    else if (d_info.dbms_name == "monetdb")
-        return dut_monetdb::save_backup_file(path);
-    #endif
-
-    #ifdef HAVE_COCKROACH
-    else if (d_info.dbms_name == "cockroach")
-        return dut_cockroachdb::save_backup_file(path);
     #endif
 
     else if (d_info.dbms_name == "postgres")
@@ -225,38 +168,19 @@ pid_t fork_db_server(dbms_info& d_info)
 {
     pid_t fork_pid = -1;
     if (false) {}
-    #ifdef HAVE_SQLITE
+    #ifdef HAVE_LIBSQLITE3
     else if (d_info.dbms_name == "sqlite")
         fork_pid = 0;
     #endif
     
     #ifdef HAVE_LIBMYSQLCLIENT
-    #ifdef HAVE_MYSQL
     else if (d_info.dbms_name == "mysql")
         fork_pid = dut_mysql::fork_db_server();
-    #endif
-    #ifdef HAVE_MARIADB
-    else if (d_info.dbms_name == "mariadb")
-        fork_pid = dut_mariadb::fork_db_server();
-    #endif
-    #ifdef HAVE_OCEANBASE
-    else if (d_info.dbms_name == "oceanbase")
-        fork_pid = dut_oceanbase::fork_db_server();
-    #endif
-    #ifdef HAVE_TIDB
+    else if (d_info.dbms_name == "oceanbase") {
+        // Do nothing, because the server crash means there is a bug
+    }
     else if (d_info.dbms_name == "tidb")
         fork_pid = dut_tidb::fork_db_server();
-    #endif
-    #endif
-
-    #ifdef HAVE_MONETDB
-    else if (d_info.dbms_name == "monetdb")
-        fork_pid = dut_monetdb::fork_db_server();
-    #endif
-
-    #ifdef HAVE_COCKROACH
-    else if (d_info.dbms_name == "cockroach")
-        fork_pid = dut_cockroachdb::fork_db_server();
     #endif
 
     else if (d_info.dbms_name == "postgres") {

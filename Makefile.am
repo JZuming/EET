@@ -3,25 +3,17 @@
 bin_PROGRAMS = eet
 
 AM_CPPFLAGS = -Dfuzz_test
-DUT = postgres.cc yugabyte.cc cockroach.cc
+DUT = postgres.cc yugabyte.cc cockroach.cc clickhouse.cc
 
 if DUT_SQLITE
 DUT += sqlite.cc
-AM_CPPFLAGS += -DHAVE_SQLITE
-endif
-
-if DUT_TIDB
-DUT += tidb.cc
-AM_CPPFLAGS += -DHAVE_TIDB
 endif
 
 if DUT_MYSQL
 DUT += mysql.cc
-AM_CPPFLAGS += -DHAVE_MYSQL
+DUT += tidb.cc
+DUT += oceanbase.cc
 endif
-
-DUT += clickhouse.cc
-AM_CPPFLAGS += -DHAVE_CLICKHOUSE
 
 QCN_TESTER_SRC = qcn_tester/qcn_tester.cc \
                 qcn_tester/qcn_select_tester.cc \

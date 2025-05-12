@@ -310,35 +310,30 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             for (int i = 0; i < db_test_time; i++) {
                 cerr << "[" << i << "]" << endl;
                 shared_ptr<qcn_tester> qcn;
-                // int choices;
-                // if (db_schema->target_dbms == "clickhouse")
-                //     choices = 6; // clickhouse'update and delete sometimes undetermined
-                // else
-                //     choices = 12;
+                int choices;
+                if (db_schema->target_dbms == "clickhouse")
+                    choices = 6; // clickhouse'update and delete sometimes undetermined
+                else
+                    choices = 12;
 
-                // auto choice = dx(choices);
-                // if (choice <= 3) {
+                auto choice = dx(choices);
+                if (choice <= 3) {
                     cerr << "qcn_select_tester" << endl;
                     qcn = make_shared<qcn_select_tester>(d_info, db_schema);
-                // }
-                // else if (choice <= 6) {
-                //     cerr << "qcn_cte_tester" << endl;
-                //     qcn = make_shared<qcn_cte_tester>(d_info, db_schema);
-                // }
-                // else if (choice <= 9) {
-                //     cerr << "qcn_update_tester" << endl;
-                //     qcn = make_shared<qcn_update_tester>(d_info, db_schema);
-                // }
-                // else {
-                // // else if (choice <= 12) {
-                //     cerr << "qcn_delete_tester" << endl;
-                //     qcn = make_shared<qcn_delete_tester>(d_info, db_schema);
-                // }
-                // else {
-                //     cerr << "qcn_insert_select_tester" << endl;
-                //     qcn = make_shared<qcn_insert_select_tester>(d_info, db_schema);
-                // }
-                // qcn->qcn_test();
+                }
+                else if (choice <= 6) {
+                    cerr << "qcn_cte_tester" << endl;
+                    qcn = make_shared<qcn_cte_tester>(d_info, db_schema);
+                }
+                else if (choice <= 9) {
+                    cerr << "qcn_update_tester" << endl;
+                    qcn = make_shared<qcn_update_tester>(d_info, db_schema);
+                }
+                else {
+                // else if (choice <= 12) {
+                    cerr << "qcn_delete_tester" << endl;
+                    qcn = make_shared<qcn_delete_tester>(d_info, db_schema);
+                }
                 if (options.count("ignore-crash") > 0) {
                     qcn->ignore_crash = true;
                 }

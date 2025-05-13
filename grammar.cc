@@ -1223,6 +1223,112 @@ string unique_index_name(scope *s)
     return new_index_name;
 }
 
+string cockroach_table_option(prod* p, shared_ptr<table> created_table)
+{
+    string table_option = "partition ";
+    table_option += "by ";
+
+    auto rand = d9();
+    if (rand == 1) {
+        table_option += "nothing";
+        return table_option;
+    }
+
+    if (rand <= 5) { // list partion
+        table_option += "list (";
+        auto partion_col = random_pick(created_table->columns());
+        table_option += partion_col.name + ") (\n";
+        
+        auto partition_num = dx(4);
+        for (int i = 0; i < partition_num; i++) {
+            table_option = table_option + "partition " + "p" + to_string(i) + " values in (";
+            auto list_len = dx(4);
+            for (int j = 0; j < list_len; j++) {
+                auto rand_value = value_expr::factory(p, partion_col.type);
+                ostringstream stmt_stream;
+                rand_value->out(stmt_stream);
+                table_option += stmt_stream.str();
+
+                if (j < list_len - 1)
+                    table_option += ", ";
+            }
+            table_option += ")";
+
+            if (i < partition_num - 1)
+                table_option += ", \n";
+        }
+        table_option += ")";
+        return table_option;
+    }
+
+    table_option += "group (";
+    auto partion_col = random_pick(created_table->columns());
+    table_option += partion_col.name + ") (\n";
+    auto partition_num = dx(4);
+
+    for (int i = 0; i < partition_num; i++) {
+        table_option = table_option + "partition " + "p" + to_string(i) + " values from (";
+
+        auto rand_value_1 = value_expr::factory(p, partion_col.type);
+        ostringstream stmt_stream;
+        rand_value_1->out(stmt_stream);
+        table_option += stmt_stream.str();
+        stmt_stream.clear();
+        
+        table_option += ") to (";
+
+        auto rand_value_2 = value_expr::factory(p, partion_col.type);
+        rand_value_2->out(stmt_stream);
+        table_option += stmt_stream.str();
+        stmt_stream.clear();
+
+        table_option += ")";
+
+        if (i < partition_num - 1)
+            table_option += ", \n";
+    }
+    table_option += ")";
+    return table_option;
+}
+
+string yugabyte_table_option(prod* p, shared_ptr<table> created_table)
+{
+    string table_option = "split ";
+    // if (d6() <= 3) {
+        table_option += "into ";
+        auto tablet_num = d100();
+        table_option += to_string(tablet_num) + " tablets";
+        return table_option;
+    // }
+
+    // // not yet supported for hash partitioned tables
+    // table_option += "at values (";
+    // auto split_points = d9();
+    // cerr << "column num: " << created_table->columns().size() << endl;
+    // cerr << "split num: " << split_points << endl;
+    // for (int i = 0; i < split_points; i++) {
+    //     table_option += "(";
+    //     auto ref_col_num = dx(created_table->columns().size());
+
+    //     cerr << "ref_col_num: " << ref_col_num << endl;
+
+    //     for (int j = 0; j < ref_col_num; j++) {
+    //         auto rand_value = value_expr::factory(p, created_table->columns()[j].type);
+    //         ostringstream stmt_stream;
+    //         rand_value->out(stmt_stream);
+    //         table_option += stmt_stream.str();
+
+    //         if (j < ref_col_num - 1)
+    //             table_option += ", ";
+    //     }
+    //     table_option += ")";
+    //     if (i < split_points - 1)
+    //         table_option += ", ";
+    // }
+    // table_option += ")";
+    // return table_option;
+}
+
 create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
 : prod(parent), myscope(s)
 {
@@ -1272,10 +1378,20 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         constraints.push_back(constraint_str);
     }
 
-    // add table property, e.g.
-    if (!scope->schema->available_table_options.empty() && d6() <= 2) {
-        has_option = true;
-        table_option = random_pick(scope->schema->available_table_options);
+    // add table property
+    if (d6() <= 2) {
+        table_option = "";
+        if (!scope->schema->available_table_options.empty()) {
+            has_option = true;
+            table_option += " " + random_pick(scope->schema->available_table_options);
+        } 
+        if (scope->schema->target_dbms == "yugabyte") {
+            has_option = true;
+            table_option += " " + yugabyte_table_option(this, created_table);
+        }
+        else if (scope->schema->target_dbms == "cockroach") {
+
+        }
     }
 
     if (!scope->schema->supported_table_engine.empty()) {
@@ -1336,7 +1452,7 @@ void create_table_stmt::out(std::ostream &out)
     out << ")";
 
     if (has_option) {
-        out << table_option;
+        out << " " << table_option;
     }
 
     if (has_engine) {

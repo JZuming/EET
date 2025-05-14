@@ -1223,31 +1223,51 @@ string unique_index_name(scope *s)
     return new_index_name;
 }
 
-string cockroach_table_option(prod* p, shared_ptr<table> created_table)
+// must partition primary key
+string cockroach_table_option(prod* p, shared_ptr<table> created_table, int primary_col_id)
 {
+    auto partion_col = created_table->columns()[primary_col_id];
+    
     string table_option = "partition ";
     table_option += "by ";
 
     auto rand = d9();
-    if (rand == 1) {
+
+    // do not partition date
+    if (partion_col.type == p->scope->schema->datetype || rand == 1) {
         table_option += "nothing";
         return table_option;
     }
 
-    if (rand <= 5) { // list partion
+    if (rand <= 5 || 
+            (partion_col.type != p->scope->schema->inttype && partion_col.type != p->scope->schema->realtype)
+        ) { // list partion
         table_option += "list (";
-        auto partion_col = random_pick(created_table->columns());
         table_option += partion_col.name + ") (\n";
         
         auto partition_num = dx(4);
+        set<string> used_value;
         for (int i = 0; i < partition_num; i++) {
+
             table_option = table_option + "partition " + "p" + to_string(i) + " values in (";
             auto list_len = dx(4);
             for (int j = 0; j < list_len; j++) {
-                auto rand_value = value_expr::factory(p, partion_col.type);
-                ostringstream stmt_stream;
-                rand_value->out(stmt_stream);
-                table_option += stmt_stream.str();
+                string list_value;
+                do {
+                    auto rand_value = make_shared<const_expr>(p, partion_col.type);
+                    ostringstream stmt_stream;
+                    rand_value->out(stmt_stream);
+                    list_value = stmt_stream.str();
+                } while (used_value.count(list_value) > 0);
+
+                table_option += list_value;
+                used_value.insert(list_value);
+                if (list_value == "0" || list_value == "-0" || list_value == "0.0" || list_value == "-0.0") {
+                    used_value.insert("0");
+                    used_value.insert("-0");
+                    used_value.insert("0.0");
+                    used_value.insert("-0.0");
+                }
 
                 if (j < list_len - 1)
                     table_option += ", ";
@@ -1261,28 +1281,26 @@ string cockroach_table_option(prod* p, shared_ptr<table> created_table)
         return table_option;
     }
 
-    table_option += "group (";
-    auto partion_col = random_pick(created_table->columns());
+    // the type should be int or real
+    table_option += "range (";
     table_option += partion_col.name + ") (\n";
     auto partition_num = dx(4);
 
+    int start_point = 0;
+    int random_len = 100 / partition_num;
     for (int i = 0; i < partition_num; i++) {
         table_option = table_option + "partition " + "p" + to_string(i) + " values from (";
 
-        auto rand_value_1 = value_expr::factory(p, partion_col.type);
-        ostringstream stmt_stream;
-        rand_value_1->out(stmt_stream);
-        table_option += stmt_stream.str();
-        stmt_stream.clear();
-        
+        auto rand_value_1 = start_point + dx(random_len);
+        table_option += to_string(rand_value_1);
         table_option += ") to (";
 
-        auto rand_value_2 = value_expr::factory(p, partion_col.type);
-        rand_value_2->out(stmt_stream);
-        table_option += stmt_stream.str();
-        stmt_stream.clear();
+        auto rand_value_2 = rand_value_1 + dx(random_len);
+        table_option += to_string(rand_value_2);
 
         table_option += ")";
+
+        start_point = rand_value_2;
 
         if (i < partition_num - 1)
             table_option += ", \n";
@@ -1347,9 +1365,9 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
     created_table->columns().push_back(wkey);
     
     // generate pkey (identify different rows)
-    column primary_key(PKEY_IDENT, scope->schema->inttype);
+    column pkey(PKEY_IDENT, scope->schema->inttype);
     constraints.push_back("");
-    created_table->columns().push_back(primary_key);
+    created_table->columns().push_back(pkey);
 
     // generate other columns
     int column_num = d9();
@@ -1378,8 +1396,21 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         constraints.push_back(constraint_str);
     }
 
+    // assign a primary key (so cannot use insert select, as it will automatically assign primary key value)
+    if (table_engine.find("Log") == string::npos) {            // CLICKHOUSE: log engine does not support primary key
+        if (table_option.find("WITHOUT ROWID") != string::npos // SQLITE: WITHOUT ROWID must has primary key
+            || table_engine.find("MergeTree") != string::npos  // CLICKHOUSE: MergeTree engine must use either primary key or order by
+            || d6() <= 5) { 
+            
+            has_primary_key = true;
+            primary_col_id = dx(column_num) - 1;
+            // primary_key_col = created_table->columns()[primary_col];
+            // constraints[primary_col] += " PRIMARY KEY";
+        }
+    }
+
     // add table property
-    if (d6() <= 2) {
+    if (d6() <= 5) {
         table_option = "";
         if (!scope->schema->available_table_options.empty()) {
             has_option = true;
@@ -1389,8 +1420,9 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
             has_option = true;
             table_option += " " + yugabyte_table_option(this, created_table);
         }
-        else if (scope->schema->target_dbms == "cockroach") {
-
+        else if (scope->schema->target_dbms == "cockroach" && has_primary_key) {
+            has_option = true;
+            table_option += " " + cockroach_table_option(this, created_table, primary_col_id);
         }
     }
 
@@ -1399,18 +1431,7 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         table_engine = random_pick(scope->schema->supported_table_engine);
     }
     
-    // assign a primary key (so cannot use insert select, as it will automatically assign primary key value)
-    if (table_engine.find("Log") == string::npos) {            // CLICKHOUSE: log engine does not support primary key
-        if (table_option.find("WITHOUT ROWID") != string::npos // SQLITE: WITHOUT ROWID must has primary key
-            || table_engine.find("MergeTree") != string::npos  // CLICKHOUSE: MergeTree engine must use either primary key or order by
-            || d6() <= 3) { 
-            
-            has_primary_key = true;
-            auto primary_col = dx(column_num) - 1;
-            primary_key_str = created_table->columns()[primary_col].name;
-            // constraints[primary_col] += " PRIMARY KEY";
-        }
-    }
+    
 
     // // check clause
     // if (d9() == 1) {
@@ -1440,7 +1461,7 @@ void create_table_stmt::out(std::ostream &out)
     if (has_primary_key) {
         out << ",";
         indent(out);
-        out << "primary key(" << primary_key_str << ")";
+        out << "primary key(" << created_table->columns()[primary_col_id].name << ")";
     }
 
     if (has_check) {

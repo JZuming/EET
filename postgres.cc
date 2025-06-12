@@ -1,6 +1,7 @@
 #include "postgres.hh"
 #include "config.h"
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cmath>
 
@@ -42,11 +43,13 @@ static vector<routine> static_aggregate_vec;
 static bool has_aggregate_para = false;
 static map<string, vector<pg_type *>> static_aggregate_para_map;
 
+static vector<string> pgerrmsg;
+
 static bool is_double(string myString, long double& result) {
     istringstream iss(myString);
     iss >> noskipws >> result; // noskipws considers leading whitespace invalid
     // Check the entire string was consumed and if either failbit or badbit is set
-    return iss.eof() && !iss.fail(); 
+    return iss.eof() && !iss.fail();
 }
 
 static string process_number_string(string str)
@@ -142,11 +145,11 @@ static bool is_suitable_proc(string proc_name)
 {
     if (proc_name.find("pg_") != string::npos)
         return false;
-    
+
     if (proc_name == "clock_timestamp"
         || proc_name == "inet_client_port"
         || proc_name == "now"
-        || proc_name.find("random") != string::npos 
+        || proc_name.find("random") != string::npos
         || proc_name == "statement_timestamp"
         || proc_name == "timeofday"
         || (proc_name.find("has_") != string::npos && proc_name.find("_privilege") != string::npos)
@@ -159,7 +162,7 @@ static bool is_suitable_proc(string proc_name)
         // || proc_name == "has_schema_privilege"
         // || proc_name == "current_setting"
         || proc_name == "set_config"
-        || proc_name.find("current") != string::npos 
+        || proc_name.find("current") != string::npos
         || proc_name == "row_security_active"
         || proc_name == "string_agg" // may generate random-ordered string
         || proc_name == "regr_slope" // may give undetermine result when the slope close to infinite or 0
@@ -178,13 +181,22 @@ bool schema_pqxx::is_consistent_with_basic_type(sqltype *rvalue)
         texttype->consistent(rvalue) ||
         datetype->consistent(rvalue))
         return true;
-    
+
     return false;
 }
 
-schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
-    : pgsql_connection(db, port)
+schema_pqxx::schema_pqxx(string db, unsigned int port, string path, bool no_catalog)
+    : pgsql_connection(db, port, path)
 {
+    ifstream pgerr("pgsqlerr.txt");
+    if (pgerr.is_open()) {
+        std::string line;
+        while (pgerr >> line)
+            pgerrmsg.push_back(line);
+    } else {
+        std::cerr << "Unable to open file for reading." << std::endl;
+    }
+
     // c.set_variable("application_name", "'" PACKAGE "::schema'");
 
     // pqxx::work w(c);
@@ -234,7 +246,7 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
             name2type.count("numeric") > 0 &&
             name2type.count("text") > 0 &&
             name2type.count("timestamp") > 0) {
-        
+
         booltype = name2type["bool"];
         inttype = name2type["int4"];
         realtype = name2type["numeric"];
@@ -264,7 +276,7 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
     supported_join_op.push_back("left outer");
     supported_join_op.push_back("right outer");
     supported_join_op.push_back("full outer");
-    
+
     // Planner Method Configuration
     supported_setting["enable_async_append"] = vector<string>({"on", "off"});
     supported_setting["enable_bitmapscan"] = vector<string>({"on", "off"});
@@ -339,12 +351,12 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
 
         if (no_catalog && ((schema == "pg_catalog") || (schema == "information_schema")))
             continue;
-        
+
         tables.push_back(table(table_name, schema,
                 ((insertable == "YES") ? true : false),
                 ((table_type == "BASE TABLE") ? true : false)));
     }
-    PQclear(res);    
+    PQclear(res);
 
     // cerr << "Loading columns and constraints...";
     for (auto t = tables.begin(); t != tables.end(); ++t) {
@@ -414,15 +426,15 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
     for (auto& o:static_op_vec) {
         register_operator(o);
     }
-    
+
     // cerr << "Loading routines...";
     if (has_routines == false) {
-        string load_routines_sql = 
+        string load_routines_sql =
             "select (select nspname from pg_namespace where oid = pronamespace), oid, prorettype, proname "
             "from pg_proc "
             "where prorettype::regtype::text not in ('event_trigger', 'trigger', 'opaque', 'internal') "
                 "and not (proretset or " + procedure_is_aggregate + " or " + procedure_is_window + ") ;";
-        
+
         res = pqexec_handle_error(conn, load_routines_sql);
         row_num = PQntuples(res);
         for (int i = 0; i < row_num; i++) {
@@ -437,7 +449,7 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
 
             if (!is_suitable_proc(proname))
                 continue;
-            
+
             routine proc(r_name, oid_str, prorettype, proname);
             static_routine_vec.push_back(proc);
         }
@@ -494,7 +506,7 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
 
     // cerr << "Loading aggregates...";
     if (has_aggregates == false) {
-        string load_aggregates_sql = 
+        string load_aggregates_sql =
             "select (select nspname from pg_namespace where oid = pronamespace), oid, prorettype, proname "
             "from pg_proc "
                 "where prorettype::regtype::text not in ('event_trigger', 'trigger', 'opaque', 'internal') "
@@ -539,7 +551,7 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, bool no_catalog)
             q = q + " where oid = " + proc.specific_name + ";";
             res = pqexec_handle_error(conn, q);
             row_num = PQntuples(res);
-            
+
             bool has_not_basic_type = false;
             vector<pg_type *> para_vec;
             for (int i = 0; i < row_num; i++) {
@@ -600,21 +612,27 @@ void dut_libpq_notice_rx(void *arg, const PGresult *res)
     (void) res;
 }
 
-pgsql_connection::pgsql_connection(string db, unsigned int port)
-{    
+pgsql_connection::pgsql_connection(string db, unsigned int port) {
     test_db = db;
     test_port = port;
-    
+}
+
+pgsql_connection::pgsql_connection(string db, unsigned int port, string path) : pgsql_connection(db, port)
+{
+    test_db = db;
+    test_port = port;
+    inst_path = path;
+
     conn = PQsetdbLogin("localhost", to_string(port).c_str(), NULL, NULL, db.c_str(), NULL, NULL);
     if (PQstatus(conn) == CONNECTION_OK)
         return; // succeed
-    
+
     string err = PQerrorMessage(conn);
     if (err.find("does not exist") == string::npos) {
         cerr << "[CONNECTION FAIL]  " << err << " in " << debug_info << endl;
         throw runtime_error("[CONNECTION FAIL] " + err + " in " + debug_info);
     }
-    
+
     cerr << "try to create database testdb" << endl;
     conn = PQsetdbLogin("localhost", to_string(test_port).c_str(), NULL, NULL, "postgres", NULL, NULL);
     if (PQstatus(conn) != CONNECTION_OK) {
@@ -649,8 +667,8 @@ pgsql_connection::~pgsql_connection()
     PQfinish(conn);
 }
 
-dut_libpq::dut_libpq(string db, unsigned int port)
-    : pgsql_connection(db, port)
+dut_libpq::dut_libpq(string db, unsigned int port, string path)
+    : pgsql_connection(db, port, path)
 {
     string set_timeout_cmd = "SET statement_timeout = '" + to_string(POSTGRES_TIMEOUT_SECOND) + "s';";
     test(set_timeout_cmd, NULL, NULL);
@@ -658,84 +676,15 @@ dut_libpq::dut_libpq(string db, unsigned int port)
 
 static bool is_expected_error(string error)
 {
-    if (error.find("violates not-null constraint") != string::npos
-        || error.find("duplicate key value violates unique constraint") != string::npos 
-        || error.find("encoding conversion from UTF8 to ASCII not supported") != string::npos 
-        || error.find("cannot take logarithm of zero") != string::npos 
-        || error.find("invalid regular expression: parentheses") != string::npos
-        || error.find("invalid normalization form") != string::npos
-        || error.find("precision must be between") != string::npos
-        || error.find("invalid regular expression: brackets") != string::npos
-        || error.find("invalid large-object descriptor") != string::npos
-        || error.find("not recognized for type timestamp without time zone") != string::npos
-        || error.find("invalid regular expression") != string::npos
-        || error.find("input is out of range") != string::npos
-        || error.find("field value out of range") != string::npos
-        || error.find("date out of range") != string::npos
-        || error.find("timestamp out of range") != string::npos
-        || error.find("out of range for type") != string::npos
-        || error.find("division by zero") != string::npos
-        || error.find("window functions are not allowed in WHERE") != string::npos
-        || error.find("aggregate functions are not allowed in") != string::npos
-        || error.find("a negative number raised to a non-integer power yields a complex result") != string::npos
-        || error.find("invalid value for parameter") != string::npos
-        || error.find("null character not permitted") != string::npos
-        || error.find("invalid escape string") != string::npos
-        || error.find("subquery uses ungrouped column") != string::npos
-        || error.find("negative substring length not allowed") != string::npos
-        || error.find("aggregate function calls cannot be nested") != string::npos
-        || error.find("cannot take logarithm of a negative number") != string::npos
-        || error.find("zero raised to a negative power is undefined") != string::npos
-        || error.find("character number must be positive") != string::npos
-        || error.find("requested character not valid for encoding") != string::npos
-        || error.find("encoding conversion from") != string::npos
-        || error.find("integer out of range") != string::npos
-        || error.find("unsupported XML feature") != string::npos
-        || error.find("and decimal point together") != string::npos
-        || error.find("field position must not be zero") != string::npos
-        || error.find("lower bound cannot equal upper bound") != string::npos
-        || error.find("cannot take square root of a negative number") != string::npos
-        || error.find("count must be greater than zero") != string::npos
-        || error.find("is not a valid encoding code") != string::npos
-        || error.find("multiple decimal points") != string::npos
-        || error.find("is not a number") != string::npos
-        || error.find("invalid preceding or following size in window function") != string::npos
-        || error.find("FULL JOIN is only supported with merge-joinable or hash-joinable join conditions") != string::npos
-        || error.find("invalid name syntax") != string::npos
-        || error.find("requested length too large") != string::npos
-        || error.find("canceling statement due to statement timeout") != string::npos
-        || error.find("cannot use \"") != string::npos
-        || error.find("lower and upper bounds must be finite") != string::npos
-        || error.find("value out of range") != string::npos
-        || error.find("LIKE pattern must not end with escape character") != string::npos
-        || error.find("value overflows numeric format") != string::npos
-        || error.find("index row size") != string::npos
-        || error.find("stack depth limit exceeded") != string::npos
-        || error.find("requested character too large for encoding") != string::npos
-        || error.find("invalid Unicode escape") != string::npos
-        || error.find("does not support") != string::npos
-        // || error.find("operator does not exist") != string::npos
-        || error.find("value is too big in tsquery") != string::npos
-        || (error.find("index row requires") != string::npos && error.find("bytes, maximum size") != string::npos)
-        || error.find("invalid memory alloc request size") != string::npos
-        || error.find(" must be ahead of ") != string::npos
-        || error.find("unterminated format() type specifier") != string::npos
-        || error.find("operand, lower bound, and upper bound cannot be NaN") != string::npos
-        || error.find("Unicode normalization can only be performed if server encoding is UTF8") != string::npos
-        || error.find("Cannot enlarge string buffer containing") != string::npos
-        || error.find("nvalid input syntax for type numeric: ") != string::npos
-        || error.find("numeric field overflow") != string::npos
-        || error.find("could not create unique index") != string::npos
-        || error.find("Unicode categorization can only be performed if server encoding is UTF8") != string::npos
-        || error.find("invalid type name") != string::npos
-        )
-        return true;
+    for (const auto& err : pgerrmsg)
+        if (error.find(err))
+            return true;
 
     return false;
 }
 
-void dut_libpq::test(const string &stmt, 
-                    vector<vector<string>>* output, 
+void dut_libpq::test(const string &stmt,
+                    vector<vector<string>>* output,
                     int* affected_row_num,
                     vector<string>* env_setting_stmts)
 {
@@ -756,13 +705,13 @@ void dut_libpq::test(const string &stmt,
             }
         }
     }
-    
+
     auto res = PQexec(conn, stmt.c_str());
     auto status = PQresultStatus(res);
     if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK) {
         string err = PQerrorMessage(conn);
         PQclear(res);
-        
+
         // clear the current result
         while (res != NULL) {
             res = PQgetResult(conn);
@@ -777,7 +726,7 @@ void dut_libpq::test(const string &stmt,
 
     if (affected_row_num) {
         auto char_num = PQcmdTuples(res);
-        if (char_num != NULL) 
+        if (char_num != NULL)
             *affected_row_num = atoi(char_num);
         else
             *affected_row_num = 0;
@@ -804,12 +753,12 @@ void dut_libpq::test(const string &stmt,
     }
     PQclear(res);
 
-    return;    
+    return;
 }
 
 void dut_libpq::reset(void)
 {
-    if (conn) 
+    if (conn)
         PQfinish(conn);
     conn = PQsetdbLogin("localhost", to_string(test_port).c_str(), NULL, NULL, "postgres", NULL, NULL);
     if (PQstatus(conn) != CONNECTION_OK) {
@@ -849,12 +798,13 @@ void dut_libpq::reset(void)
 
 void dut_libpq::backup(void)
 {
-     string pgsql_dump = "/usr/local/pgsql/bin/pg_dump -p " + 
+     string pgsql_dump = inst_path + "/bin/pg_dump -p " +
                         to_string(test_port) + " " + test_db + " > " + POSTGRES_BK_FILE(test_db);
+
     int ret = system(pgsql_dump.c_str());
     if (ret != 0) {
         std::cerr << "backup fail \nLocation: " + debug_info << endl;
-        throw std::runtime_error("backup fail \nLocation: " + debug_info); 
+        throw std::runtime_error("backup fail \nLocation: " + debug_info);
     }
 }
 
@@ -862,15 +812,15 @@ void dut_libpq::reset_to_backup(void)
 {
     reset();
     string bk_file = POSTGRES_BK_FILE(test_db);
-    if (access(bk_file.c_str(), F_OK ) == -1) 
+    if (access(bk_file.c_str(), F_OK ) == -1)
         return;
-    
+
     PQfinish(conn);
-    
-    string pgsql_source = "/usr/local/pgsql/bin/psql -p " 
-                        + to_string(test_port) + " " + test_db + " < " 
+
+    string pgsql_source = inst_path + "/bin/psql -p "
+                        + to_string(test_port) + " " + test_db + " < "
                         + POSTGRES_BK_FILE(test_db) + " 1> /dev/null";
-    if (system(pgsql_source.c_str()) == -1) 
+    if (system(pgsql_source.c_str()) == -1)
         throw std::runtime_error(string("system() error, return -1") + "\nLocation: " + debug_info);
 
     conn = PQsetdbLogin("localhost", to_string(test_port).c_str(), NULL, NULL, test_db.c_str(), NULL, NULL);

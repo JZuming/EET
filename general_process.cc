@@ -31,21 +31,21 @@ shared_ptr<schema> get_schema(dbms_info& d_info)
     try {
         if (false) {}
         #ifdef HAVE_LIBSQLITE3
-        else if (d_info.dbms_name == "sqlite") 
+        else if (d_info.dbms_name == "sqlite")
             schema = make_shared<schema_sqlite>(d_info.test_db, true);
         #endif
 
         #ifdef HAVE_LIBMYSQLCLIENT
-        else if (d_info.dbms_name == "mysql") 
+        else if (d_info.dbms_name == "mysql")
             schema = make_shared<schema_mysql>(d_info.test_db, d_info.test_port);
-        else if (d_info.dbms_name == "oceanbase") 
+        else if (d_info.dbms_name == "oceanbase")
             schema = make_shared<schema_ob>(d_info.test_db, d_info.test_port, d_info.host_addr);
-        else if (d_info.dbms_name == "tidb") 
+        else if (d_info.dbms_name == "tidb")
             schema = make_shared<schema_tidb>(d_info.test_db, d_info.test_port);
         #endif
-        
+
         else if (d_info.dbms_name == "postgres")
-            schema = make_shared<schema_pqxx>(d_info.test_db, d_info.test_port, true);
+            schema = make_shared<schema_pqxx>(d_info.test_db, d_info.test_port, d_info.inst_path, true);
         else if (d_info.dbms_name == "clickhouse")
             schema = make_shared<schema_clickhouse>(d_info.test_db, d_info.test_port);
         else if (d_info.dbms_name == "yugabyte")
@@ -60,7 +60,6 @@ shared_ptr<schema> get_schema(dbms_info& d_info)
 
     } catch (exception &e) { // may occur occastional error
         dbms_execution_ms = dbms_execution_ms + (get_cur_time_ms() - schema_start);
-        
         string err = e.what();
         bool expected = (err.find("expected error") != string::npos) || (err.find("timeout") != string::npos);
         if (!expected) {
@@ -101,7 +100,7 @@ shared_ptr<dut_base> dut_setup(dbms_info& d_info)
     else if (d_info.dbms_name == "clickhouse")
         dut = make_shared<dut_clickhouse>(d_info.test_db, d_info.test_port, DB_RECORD_FILE);
     else if (d_info.dbms_name == "postgres")
-        dut = make_shared<dut_libpq>(d_info.test_db, d_info.test_port);
+        dut = make_shared<dut_libpq>(d_info.test_db, d_info.test_port, d_info.inst_path);
     else if (d_info.dbms_name == "yugabyte")
         dut = make_shared<dut_yugabyte>(d_info.test_db, d_info.test_port, d_info.host_addr);
     else if (d_info.dbms_name == "cockroach")
@@ -172,7 +171,7 @@ pid_t fork_db_server(dbms_info& d_info)
     else if (d_info.dbms_name == "sqlite")
         fork_pid = 0;
     #endif
-    
+
     #ifdef HAVE_LIBMYSQLCLIENT
     else if (d_info.dbms_name == "mysql")
         fork_pid = dut_mysql::fork_db_server();
@@ -203,13 +202,13 @@ pid_t fork_db_server(dbms_info& d_info)
     return fork_pid;
 }
 
-void user_signal(int signal)  
-{  
-    if(signal != SIGUSR1) {  
-        printf("unexpect signal %d\n", signal);  
-        exit(1);  
-    }  
-     
+void user_signal(int signal)
+{
+    if(signal != SIGUSR1) {
+        printf("unexpect signal %d\n", signal);
+        exit(1);
+    }
+
     cerr << "get SIGUSR1, stop the thread" << endl;
     pthread_exit(0);
 }
@@ -246,28 +245,28 @@ void dut_reset_to_backup(dbms_info& d_info)
     dut->reset_to_backup();
 }
 
-void dut_get_content(dbms_info& d_info, 
+void dut_get_content(dbms_info& d_info,
                     map<string, vector<vector<string>>>& content)
 {
     vector<string> table_names;
     auto schema = get_schema(d_info);
     for (auto& table:schema->tables)
         table_names.push_back(table.ident());
-    
+
     content.clear();
     auto dut = dut_setup(d_info);
     dut->get_content(table_names, content);
 }
 
-void interect_test(dbms_info& d_info, 
-                    shared_ptr<prod> (* tmp_statement_factory)(scope *), 
+void interect_test(dbms_info& d_info,
+                    shared_ptr<prod> (* tmp_statement_factory)(scope *),
                     bool need_affect,
                     string record_file)
 {
     auto schema = get_schema(d_info);
     scope scope;
     schema->fill_scope(scope);
-    
+
     shared_ptr<prod> gen = tmp_statement_factory(&scope);
     ostringstream s;
     gen->out(s);
@@ -276,13 +275,13 @@ void interect_test(dbms_info& d_info,
     static int try_time = 0;
     auto test_start = get_cur_time_ms();
     try {
-        auto dut = dut_setup(d_info);    
+        auto dut = dut_setup(d_info);
         int affect_num = 0;
         dut->test(sql, NULL, &affect_num);
-        
+
         if (need_affect && affect_num <= 0)
             throw runtime_error(string("expected error: affect result empty"));
-        
+
         ofstream ofile(record_file, ios::app);
         ofile << sql << endl;
         ofile.close();
@@ -290,7 +289,7 @@ void interect_test(dbms_info& d_info,
 
     } catch(std::exception &e) { // ignore runtime error
         dbms_execution_ms = dbms_execution_ms + (get_cur_time_ms() - test_start);
-        
+
         string err = e.what();
         cerr << "err: " << e.what() << endl;
         bool expected = (err.find("expected error") != string::npos) || (err.find("timeout") != string::npos);
@@ -311,9 +310,9 @@ void interect_test(dbms_info& d_info,
     }
 }
 
-void normal_test(dbms_info& d_info, 
-                    shared_ptr<schema>& schema, 
-                    shared_ptr<prod> (* tmp_statement_factory)(scope *), 
+void normal_test(dbms_info& d_info,
+                    shared_ptr<schema>& schema,
+                    shared_ptr<prod> (* tmp_statement_factory)(scope *),
                     bool need_affect,
                     string record_file)
 {
@@ -331,10 +330,10 @@ void normal_test(dbms_info& d_info,
         auto dut = dut_setup(d_info);
         int affect_num = 0;
         dut->test(sql, NULL, &affect_num);
-        
+
         if (need_affect && affect_num <= 0)
             throw runtime_error(string("expected error: affect result empty"));
-        
+
         ofstream ofile(record_file, ios::app);
         ofile << sql << endl;
         ofile.close();
@@ -363,12 +362,12 @@ void normal_test(dbms_info& d_info,
     }
 }
 
-static size_t BKDRHash(const char *str, size_t hash)  
+static size_t BKDRHash(const char *str, size_t hash)
 {
-    while (size_t ch = (size_t)*str++)  {         
-        hash = hash * 131 + ch;   // 也可以乘以31、131、1313、13131、131313..  
-    }  
-    return hash;  
+    while (size_t ch = (size_t)*str++)  {
+        hash = hash * 131 + ch;   // 也可以乘以31、131、1313、13131、131313..
+    }
+    return hash;
 }
 
 static void hash_output_to_set(vector<vector<string>> &output, vector<size_t>& hash_set)
@@ -408,34 +407,34 @@ static void output_diff(string item_name, vector<vector<string>>& a_result, vect
 }
 
 static bool is_number(const string &s) {
-    if (s.empty() || s.length() <= 0) 
+    if (s.empty() || s.length() <= 0)
         return false;
 
     int point = 0;
-    if (s.length() == 1 && (s[0] >'9' || s[0] < '0')) 
+    if (s.length() == 1 && (s[0] >'9' || s[0] < '0'))
         return false;
 
     if(s.length() > 1) {
-        if (s[0]!='.' && (s[0] >'9' || s[0] < '0')&&s[0]!='-' && s[0]!='+') 
+        if (s[0]!='.' && (s[0] >'9' || s[0] < '0')&&s[0]!='-' && s[0]!='+')
             return false;
-        
-        if (s[0] == '.') 
+
+        if (s[0] == '.')
             ++point;
 
-        if ((s[0] == '+' || s[0] == '-') && (s[1] >'9' || s[1] < '0')) 
+        if ((s[0] == '+' || s[0] == '-') && (s[1] >'9' || s[1] < '0'))
             return false;
 
         for (size_t i = 1; i < s.length(); ++i) {
-            if (s[i]!='.' && (s[i] >'9' || s[i] < '0')) 
+            if (s[i]!='.' && (s[i] >'9' || s[i] < '0'))
                 return false;
 
-            if (s[i] == '.') 
+            if (s[i] == '.')
                 ++point;
         }
     }
 
     if (point > 1) return false;
-    
+
     return true;
 }
 
@@ -448,7 +447,7 @@ static bool nomoalize_content(vector<vector<string>> &content)
         for (int j = 0; j < column_num; j++) {
             auto str = content[i][j];
             double value = 0;
-            
+
             if (!is_number(str) || str.find(".") == string::npos)
                 continue;
 
@@ -461,18 +460,18 @@ static bool nomoalize_content(vector<vector<string>> &content)
     return true;
 }
 
-bool compare_content(map<string, vector<vector<string>>>&a_content, 
+bool compare_content(map<string, vector<vector<string>>>&a_content,
                      map<string, vector<vector<string>>>&b_content)
 {
     if (a_content.size() != b_content.size()) {
         cerr << "size not equal: " << a_content.size() << " " << b_content.size() << endl;
         return false;
     }
-    
+
     for (auto iter = a_content.begin(); iter != a_content.begin(); iter++) {
         auto& table = iter->first;
         auto& con_table_content = iter->second;
-        
+
         if (b_content.count(table) == 0) {
             cerr << "b_content does not have " << table << endl;
             return false;
@@ -518,10 +517,10 @@ bool compare_output(vector<vector<vector<string>>>& a_output,
     for (auto i = 0; i < size; i++) { // for each stmt
         auto& a_stmt_output = a_output[i];
         auto& b_stmt_output = b_output[i];
-    
+
         nomoalize_content(a_stmt_output);
         nomoalize_content(b_stmt_output);
-        
+
         vector<size_t> a_hash_set, b_hash_set;
         hash_output_to_set(a_stmt_output, a_hash_set);
         hash_output_to_set(b_stmt_output, b_hash_set);
@@ -546,20 +545,20 @@ bool compare_output(vector<vector<vector<string>>>& a_output,
 }
 
 int generate_database(dbms_info& d_info)
-{ 
+{
     if (remove(DB_RECORD_FILE) != 0) {
         cerr << "generate_database: cannot remove file (" << DB_RECORD_FILE << ")" << endl;
     }
-    
+
     dut_reset(d_info);
 
     auto ddl_stmt_num = d6() + 3; // at least 3 statements to create 3 tables
     for (auto i = 0; i < ddl_stmt_num; i++)
-        interect_test(d_info, &ddl_statement_factory, false, DB_RECORD_FILE); // has disabled the not null, check and unique clause 
-    
+        interect_test(d_info, &ddl_statement_factory, false, DB_RECORD_FILE); // has disabled the not null, check and unique clause
+
     auto basic_dml_stmt_num = 80 + d42(); // 80 - 122 inserted items
     auto schema = get_schema(d_info); // schema will not change in this stage
-    for (auto i = 0; i < basic_dml_stmt_num; i++) 
+    for (auto i = 0; i < basic_dml_stmt_num; i++)
         normal_test(d_info, schema, &basic_dml_statement_factory, true, DB_RECORD_FILE);
 
     dut_backup(d_info);
@@ -575,7 +574,7 @@ void gen_stmts_for_one_txn(shared_ptr<schema> &db_schema,
     auto can_error = d_info.can_trigger_error_in_txn;
     if (can_error == false || d_info.ouput_or_affect_num > 0)
         dut_reset_to_backup(d_info);
-    
+
     vector<shared_ptr<prod>> all_tested_stmts; // if crash, report such statement
     scope scope;
     db_schema->fill_scope(scope);
@@ -584,7 +583,7 @@ void gen_stmts_for_one_txn(shared_ptr<schema> &db_schema,
     int fail_time = 0;
     int choice = -1;
     while (1) {
-        if (succeed) 
+        if (succeed)
             choice = d12();
         else { // if fail, do not change choice
             fail_time++;
@@ -606,7 +605,7 @@ void gen_stmts_for_one_txn(shared_ptr<schema> &db_schema,
                 int affect_num = 0;
                 vector<vector<string>> output;
                 all_tested_stmts.push_back(gen);
-                
+
                 dut->test(stmt, &output, &affect_num);
                 if (output.size() + affect_num < d_info.ouput_or_affect_num)
                     continue;
@@ -614,10 +613,10 @@ void gen_stmts_for_one_txn(shared_ptr<schema> &db_schema,
                 string err = e.what();
                 if (err.find("CONNECTION FAIL") != string::npos ||
                         err.find("BUG") != string::npos) {
-                    
+
                     cerr << err << endl;
                     ofstream bug_file(NORMAL_BUG_FILE);
-                    for (auto& stmt : all_tested_stmts) 
+                    for (auto& stmt : all_tested_stmts)
                         bug_file << print_stmt_to_string(stmt) << ";\n" << endl;
                     bug_file.close();
                     throw;
@@ -658,7 +657,7 @@ void kill_server_process_with_SIGTERM()
         ret = kill(server_process_id, 0);
         if (ret != 0)
             break;
-        
+
         auto now_time = get_cur_time_ms();
         if (now_time - begin_time > KILL_PROC_TIME_MS)
             break;
@@ -719,7 +718,7 @@ bool fork_if_server_closed(dbms_info& d_info)
             if (server_restart)
                 sleep(3);
             break; // connect successfully, so break;
-        
+
         } catch (exception &e) { // connect fail
             auto ret = kill(server_process_id, 0);
             if (ret != 0) { // server has die
@@ -735,7 +734,7 @@ bool fork_if_server_closed(dbms_info& d_info)
             auto time_end = get_cur_time_ms();
             if (time_end - time_begin > WAIT_FOR_PROC_TIME_MS) {
                 cerr << "testing server hang, kill it and restart" << endl;
-                
+
                 while (try_to_kill_server() == false) {}
                 server_process_id = fork_db_server(d_info);
                 time_begin = get_cur_time_ms();

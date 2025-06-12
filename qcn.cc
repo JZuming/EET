@@ -55,8 +55,8 @@ void print_output_to_file(multiset<vector<string>> &output, string filename)
     ofile.close();
 }
 
-void minimize_qcn_database(shared_ptr<qcn_tester> qcn, 
-                            string input_db_record_file, 
+void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
+                            string input_db_record_file,
                             string output_db_record_file,
                             multiset<vector<string>>* min_origin_output,
                             multiset<vector<string>>* min_qit_output)
@@ -76,7 +76,7 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
         auto new_off = stmts.find(seperate_label, old_off);
         if (new_off == string::npos)
             break;
-        
+
         auto each_sql = stmts.substr(old_off, new_off - old_off); // not include the seperate_label
         old_off = new_off + seperate_label.size();
 
@@ -89,7 +89,7 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
         stmt_queue.erase(stmt_queue.begin() + i);
         cout << "-----------------" << endl;
         cout << "trying to remove stmt: " << removed_stmt << endl;
-        
+
         shared_ptr<dut_base> dut;
         while (1) {
             try {
@@ -103,7 +103,7 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
                 continue;
             }
         }
-        
+
         // feed the database with stmts
         int new_stmt_num = stmt_queue.size();
         bool trigger_error = false;
@@ -152,7 +152,7 @@ void minimize_qcn_database(shared_ptr<qcn_tester> qcn,
             cout << "-----------------" << endl;
             continue;
         }
-        
+
         // bug disapper, add the stmt back
         stmt_queue.insert(stmt_queue.begin() + i, removed_stmt);
     }
@@ -173,7 +173,7 @@ int cpu_affinity = -1;
 
 int main(int argc, char *argv[]) {
     test_start_timestamp_ms = get_cur_time_ms();
-    
+
     // pipefd for process communication
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -187,14 +187,14 @@ int main(int argc, char *argv[]) {
 (help|db-test-num|seed|cpu-affinity|\
 ignore-crash|\
 sqlite|\
-postgres-db|postgres-port|\
+postgres-db|postgres-port|postgres-path|\
 cockroach-db|cockroach-port|cockroach-host|\
 yugabyte-db|yugabyte-port|yugabyte-host|\
 clickhouse-db|clickhouse-port|\
 tidb-db|tidb-port|\
 mysql-db|mysql-port|\
 oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
-    
+
     for(char **opt = argv + 1 ;opt < argv + argc; opt++) {
         smatch match;
         string s(*opt);
@@ -210,19 +210,20 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
         cerr <<
         "    --postgres-db=connstr  Postgres database to send queries to, should used with --postgres-port" <<endl <<
         "    --postgres-port=int    Postgres server port number, should used with --postgres-db" <<endl <<
+        "    --postgres-path=str    Postgres server instalation path (default is '/usr/local/pgsql')" <<endl <<
 #ifdef HAVE_LIBSQLITE3
         "    --sqlite=URI           SQLite database to send queries to" << endl <<
 #endif
 #ifdef HAVE_LIBMYSQLCLIENT
-        "    --mysql-db=constr      MySQL database to send queries to, should be used with mysql-port" << endl << 
-        "    --mysql-port=int       MySQL server port number, should be used with mysql-db" << endl << 
-        "    --tidb-db=constr   tidb database name to send queries to (should used with" << endl << 
-        "    --tidb-port=int    tidb server port number" << endl << 
-        "    --oceanbase-db=constr      OceanBase database name to send queries to " << endl << 
-        "    --oceanbase-port=int       OceanBase server port number" << endl << 
+        "    --mysql-db=constr      MySQL database to send queries to, should be used with mysql-port" << endl <<
+        "    --mysql-port=int       MySQL server port number, should be used with mysql-db" << endl <<
+        "    --tidb-db=constr   tidb database name to send queries to (should used with" << endl <<
+        "    --tidb-port=int    tidb server port number" << endl <<
+        "    --oceanbase-db=constr      OceanBase database name to send queries to " << endl <<
+        "    --oceanbase-port=int       OceanBase server port number" << endl <<
         "    --oceanbase-host=constr    OceanBase server host address" << endl <<
 #endif
-        "    --clickhouse-db=constr    ClickHouse tested database" << endl << 
+        "    --clickhouse-db=constr    ClickHouse tested database" << endl <<
         "    --clickhouse-port=int     ClickHouse server port number" << endl <<
         "    --cockroach-db=constr       CockroachDB tested database" << endl <<
         "    --cockroach-port=int        CockroachDB server port number" << endl <<
@@ -232,15 +233,16 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
         "    --yugabyte-host=constr     YugaByte server host address" << endl <<
         "    --db-test-num=int      number of qcn tests for each generated database" << endl <<
         "    --seed=int             seed RNG with specified int instead of PID" << endl <<
-        "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl << 
-        "    --ignore-crash         ignore crash bug, the fuzzer will not stop when it finds crash issues" << endl << 
+        "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl <<
+        "    --ignore-crash         ignore crash bug, the fuzzer will not stop when it finds crash issues" << endl <<
         "    --help                 print available command line options and exit" << endl;
         return 0;
     }
-    
+
     dbms_info d_info(options);
     cerr << "-------------Test Info------------" << endl;
     cerr << "Test DBMS: " << d_info.dbms_name << endl;
+    cerr << "Test DBMS path: " << d_info.inst_path << endl;
     cerr << "Test database: " << d_info.test_db << endl;
     cerr << "Test port: " << d_info.test_port << endl;
     cerr << "Test host: " << d_info.host_addr << endl;
@@ -249,11 +251,11 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
     int db_test_time = DEFAULT_DB_TEST_TIME;
     if (options.count("db-test-num") > 0)
         db_test_time = stoi(options["db-test-num"]);
-    
+
     cpu_affinity = -1;
     if (options.count("cpu-affinity") > 0)
         cpu_affinity = stoi(options["cpu-affinity"]);
-    
+
     if (cpu_affinity >= 0) {
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset); // clear the CPU set
@@ -264,7 +266,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             exit(EXIT_FAILURE);
         }
     }
-    
+
     int round = 0;
     while (1) {
         cerr << "round " << round << " ... " << endl;
@@ -359,8 +361,8 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
                     // reduce database
                     multiset<vector<string>> min_origin_result = qcn->original_query_result;
                     multiset<vector<string>> min_qit_result = qcn->qit_query_result;
-                    minimize_qcn_database(qcn, DB_RECORD_FILE, 
-                                            "minimized/" + string(DB_RECORD_FILE), 
+                    minimize_qcn_database(qcn, DB_RECORD_FILE,
+                                            "minimized/" + string(DB_RECORD_FILE),
                                             &min_origin_result,
                                             &min_qit_result);
                     print_output_to_file(min_origin_result, "minimized/origin.out");
@@ -428,6 +430,6 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
         print_test_time_info();
         cerr << "done" << endl;
     }
-    
+
     return 0;
 }

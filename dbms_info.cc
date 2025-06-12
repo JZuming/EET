@@ -1,7 +1,7 @@
 #include "dbms_info.hh"
 
 dbms_info::dbms_info(map<string,string>& options)
-{    
+{
     if (false) {}
     #ifdef HAVE_LIBSQLITE3
     else if (options.count("sqlite")) {
@@ -10,7 +10,7 @@ dbms_info::dbms_info(map<string,string>& options)
         test_db = options["sqlite"];
         can_trigger_error_in_txn = true;
     }
-    #endif 
+    #endif
 
     #ifdef HAVE_LIBMYSQLCLIENT
     else if (options.count("tidb-db") && options.count("tidb-port")) {
@@ -32,21 +32,22 @@ dbms_info::dbms_info(map<string,string>& options)
         host_addr = options["oceanbase-host"];
         can_trigger_error_in_txn = true;
     }
-    #endif 
+    #endif
 
     else if (options.count("clickhouse-db") && options.count("clickhouse-port")) {
         dbms_name = "clickhouse";
         test_port = stoi(options["clickhouse-port"]);
         test_db = options["clickhouse-db"];
         can_trigger_error_in_txn = false;
-    } 
+    }
     else if (options.count("postgres-db") && options.count("postgres-port")) {
         dbms_name = "postgres";
         test_port = stoi(options["postgres-port"]);
         test_db = options["postgres-db"];
+        inst_path = options.count("postgres-path") ? options["postgres-path"] : "/usr/local/pgsql";
         can_trigger_error_in_txn = false;
     }
-    else if (options.count("yugabyte-db") && 
+    else if (options.count("yugabyte-db") &&
                     options.count("yugabyte-port") &&
                     options.count("yugabyte-host")) {
         dbms_name = "yugabyte";
@@ -55,7 +56,7 @@ dbms_info::dbms_info(map<string,string>& options)
         host_addr = options["yugabyte-host"];
         can_trigger_error_in_txn = false;
     }
-    else if (options.count("cockroach-db") && 
+    else if (options.count("cockroach-db") &&
                     options.count("cockroach-port") &&
                     options.count("cockroach-host")) {
         dbms_name = "cockroach";
@@ -69,9 +70,9 @@ dbms_info::dbms_info(map<string,string>& options)
         throw runtime_error("Does not define target dbms and db in dbms_info::dbms_info()");
     }
 
-    if (options.count("output-or-affect-num")) 
+    if (options.count("output-or-affect-num"))
         ouput_or_affect_num = stoi(options["output-or-affect-num"]);
-    else 
+    else
         ouput_or_affect_num = 0;
 
     return;

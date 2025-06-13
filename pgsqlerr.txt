@@ -1,0 +1,71 @@
+violates not-null constraint
+duplicate key value violates unique constraint
+encoding conversion from UTF8 to ASCII not supported
+cannot take logarithm of zero
+invalid regular expression: parentheses
+invalid normalization form
+precision must be between
+invalid regular expression: brackets
+invalid large-object descriptor
+not recognized for type timestamp without time zone
+invalid regular expression
+input is out of range
+field value out of range
+date out of range
+timestamp out of range
+out of range for type
+division by zero
+window functions are not allowed in WHERE
+aggregate functions are not allowed in
+a negative number raised to a non-integer power yields a complex result
+invalid value for parameter
+null character not permitted
+invalid escape string
+subquery uses ungrouped column
+negative substring length not allowed
+aggregate function calls cannot be nested
+cannot take logarithm of a negative number
+zero raised to a negative power is undefined
+character number must be positive
+requested character not valid for encoding
+encoding conversion from
+integer out of range
+unsupported XML feature
+and decimal point together
+field position must not be zero
+lower bound cannot equal upper bound
+cannot take square root of a negative number
+count must be greater than zero
+is not a valid encoding code
+multiple decimal points
+is not a number
+invalid preceding or following size in window function
+FULL JOIN is only supported with merge-joinable or hash-joinable join conditions
+invalid name syntax
+requested length too large
+canceling statement due to statement timeout
+cannot use "
+lower and upper bounds must be finite
+value out of range
+LIKE pattern must not end with escape character
+value overflows numeric format
+index row size
+stack depth limit exceeded
+requested character too large for encoding
+invalid Unicode escape
+does not support
+// operator does not exist
+value is too big in tsquery
+index row requires
+bytes maximum size
+invalid memory alloc request size
+must be ahead of
+unterminated format() type specifier
+operand lower bound and upper bound cannot be NaN
+Unicode normalization can only be performed if server encoding is UTF8
+Cannot enlarge string buffer containing
+nvalid input syntax for type numeric:
+numeric field overflow
+could not create unique index
+Unicode categorization can only be performed if server encoding is UTF8
+invalid type name

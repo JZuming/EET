@@ -19,6 +19,7 @@ table *handle_table = NULL;
 int write_op_id = 0; // start from 10000
 static int row_id = 10000; // start from 10000
 
+map<string, int> tabl_pk_col_id;
 static set<string> created_col_names;
 static set<string> created_win_names;
 static set<string> exist_table_name;
@@ -96,7 +97,7 @@ table_or_query_name::table_or_query_name(prod *p, bool only_base_table) : table_
         vector<table *> base_tables;
         for (auto& name_ptr:scope->tables) {
             auto table_ptr = dynamic_cast<table *>(name_ptr);
-            if (table_ptr && table_ptr->is_base_table == true) 
+            if (table_ptr && table_ptr->is_base_table == true)
                 base_tables.push_back(table_ptr);
         }
         t = random_pick(base_tables);
@@ -142,7 +143,7 @@ table_sample::table_sample(prod *p) : table_ref(p) {
     t = dynamic_cast<struct table*>(pick);
     retry();
   } while (!t || !t->is_base_table);
-  
+
   refs.push_back(make_shared<aliased_relation>(scope->stmt_uid("sample"), t));
   percent = 0.1 * d100();
   method = (d6() > 2) ? "system" : "bernoulli";
@@ -176,7 +177,7 @@ shared_ptr<join_cond> join_cond::factory(prod *p, table_ref &lhs, table_ref &rhs
         if (schema::target_dbms == "tidb" || schema::target_dbms == "clickhouse"
             || schema::target_dbms == "postgres")
             return make_shared<simple_join_cond>(p, lhs, rhs);
-        
+
         if (d6() >= 4)
             return make_shared<expr_join_cond>(p, lhs, rhs);
         else
@@ -192,7 +193,7 @@ simple_join_cond::simple_join_cond(prod *p, table_ref &lhs, table_ref &rhs)
 {
 retry:
   named_relation *left_rel = &*random_pick(lhs.refs);
-  
+
   if (!left_rel->columns().size())
     { retry(); goto retry; }
 
@@ -244,7 +245,7 @@ joined_table::joined_table(prod *p) : table_ref(p) {
 
     assert(!scope->schema->supported_join_op.empty());
     type = random_pick(scope->schema->supported_join_op);
-    
+
     auto tmp_group = use_group;
     use_group = 0;
     if (type != "cross")
@@ -260,14 +261,14 @@ joined_table::joined_table(prod *p) : table_ref(p) {
 void joined_table::out(std::ostream &out) {
     if (scope->schema->target_dbms != "clickhouse")
         out << "(";
-    
+
     out << *lhs;
     indent(out);
     out << type << " join " << *rhs;
     indent(out);
     if (type != "cross")
         out << "on (" << *condition << ")";
-    
+
     if (scope->schema->target_dbms != "clickhouse")
         out << ")";
 }
@@ -306,18 +307,18 @@ from_clause::from_clause(prod *p, table *from_table) : prod(p) {
         scope->refs.push_back(&*r);
 }
 
-select_list::select_list(prod *p, 
-                    vector<shared_ptr<named_relation> > *refs, 
+select_list::select_list(prod *p,
+                    vector<shared_ptr<named_relation> > *refs,
                     vector<sqltype *> *pointed_type,
                     bool select_all) :
  prod(p), prefer_refs(refs)
 {
-    if (select_all && pointed_type != NULL) 
+    if (select_all && pointed_type != NULL)
         throw std::runtime_error("select_all and pointed_type cannot be used at the same time");
-    
+
     if (select_all && refs == NULL)
         throw std::runtime_error("select_all and refs should be used at the same time");
-    
+
     if (select_all) { // pointed_type is null and prefer_refs is not null
         // auto r = &*random_pick(*prefer_refs);
         for (auto& r : *prefer_refs) {
@@ -326,7 +327,7 @@ select_list::select_list(prod *p,
                 expr->type = col.type;
                 expr->reference = r->ident() + "." + col.name;
                 expr->table_ref = r->ident();
-                
+
                 value_exprs.push_back(expr);
                 ostringstream name;
                 if (schema::target_dbms == "clickhouse")
@@ -487,7 +488,7 @@ void select_for_update::out(std::ostream &out) {
   }
 }
 
-query_spec::query_spec(prod *p, struct scope *s, 
+query_spec::query_spec(prod *p, struct scope *s,
                     bool lateral, vector<sqltype *> *pointed_type,
                     bool txn_mode) :
   prod(p), myscope(s)
@@ -503,27 +504,27 @@ query_spec::query_spec(prod *p, struct scope *s,
         use_group = 0;
 
     if (use_group == 2) { // confirm whether use group
-        if (d6() == 1) 
+        if (d6() == 1)
             use_group = 1;
-        else 
+        else
             use_group = 0;
     }
 
     if (lateral)
         scope->refs = s->refs;
-    
+
     int tmp_group = use_group; // store use_group temporarily
-    
+
     // from clause can use "group by".
-    use_group = 2; 
+    use_group = 2;
     from_clause = make_shared<struct from_clause>(this, txn_mode); // txn testing: need to know which rows are read, so just from a table
 
     use_group = 0; // cannot use "group by" in "where" and "select" clause.
-    search = bool_expr::factory(this); 
-    
+    search = bool_expr::factory(this);
+
     // txn testing: need to know all info of columns so select * from table_name where
     select_list = make_shared<struct select_list>(this, &from_clause->reflist.back()->refs, pointed_type, txn_mode);
-    
+
     use_group = tmp_group; // recover use_group
 
     if (use_group == 1) {
@@ -566,9 +567,9 @@ query_spec::query_spec(prod *p, struct scope *s,
     }
 
     // "txn_mode" and "qcn_select_mode" need to get all row, cannot use limit
-    // the subquery in clause cannot use limit (mysql) 
+    // the subquery in clause cannot use limit (mysql)
     // must used with "order by", otherwise the result is not determined
-    if (!txn_mode && in_in_clause == 0 && has_order && d6() < 3) { 
+    if (!txn_mode && in_in_clause == 0 && has_order && d6() < 3) {
         has_limit = true;
         limit_num = d100() + d100();
     }
@@ -579,7 +580,7 @@ query_spec::query_spec(prod *p, struct scope *s,
 }
 
 query_spec::query_spec(prod *p, struct scope *s,
-              table *from_table, 
+              table *from_table,
               shared_ptr<bool_expr> where_search) :
   prod(p), myscope(s)
 {
@@ -592,13 +593,13 @@ query_spec::query_spec(prod *p, struct scope *s,
     use_group = 0;
 
     from_clause = make_shared<struct from_clause>(this, from_table);
-    search = where_search; 
+    search = where_search;
     select_list = make_shared<struct select_list>(this, &from_clause->reflist.back()->refs, (vector<sqltype *> *)NULL, true);
 }
 
 query_spec::query_spec(prod *p, struct scope *s,
-              table *from_table, 
-              op *target_op, 
+              table *from_table,
+              op *target_op,
               shared_ptr<value_expr> left_operand,
               shared_ptr<value_expr> right_operand) :
   prod(p), myscope(s)
@@ -649,13 +650,13 @@ delete_stmt::delete_stmt(prod *p, struct scope *s, table *v)
 
     if (schema::target_dbms == "clickhouse")
         handle_table = victim;
-    
+
     // dont select the target table
     vector<named_relation *> excluded_tables;
     vector<pair<sqltype*, table*>> excluded_t_with_c_of_type;
-    exclude_tables(victim, scope->tables, 
-                    scope->schema->tables_with_columns_of_type, 
-                    excluded_tables, 
+    exclude_tables(victim, scope->tables,
+                    scope->schema->tables_with_columns_of_type,
+                    excluded_tables,
                     excluded_t_with_c_of_type);
 
     // can only select base table, because views may include the data of target table
@@ -666,24 +667,24 @@ delete_stmt::delete_stmt(prod *p, struct scope *s, table *v)
             views.push_back(real_t);
     }
     for (auto v : views) {
-        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type, 
+        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type,
                         excluded_tables, excluded_t_with_c_of_type);
     }
 
     search = bool_expr::factory(this);
 
-    // Do not recover, because equivalent transform may also use the scope 
+    // Do not recover, because equivalent transform may also use the scope
     // And recovering is unnecessary.
-    // recover_tables(scope->tables, 
-    //                 scope->schema->tables_with_columns_of_type, 
-    //                 excluded_tables, 
+    // recover_tables(scope->tables,
+    //                 scope->schema->tables_with_columns_of_type,
+    //                 excluded_tables,
     //                 excluded_t_with_c_of_type);
 }
 
 void delete_stmt::out(ostream &out) {
-    if (schema::target_dbms == "clickhouse") 
+    if (schema::target_dbms == "clickhouse")
         out << "alter table " << victim->ident() << " delete";
-    else 
+    else
         out << "delete from " << victim->ident();
     indent(out);
     out << "where " << std::endl << *search;
@@ -704,11 +705,11 @@ insert_stmt::insert_stmt(prod *p, struct scope *s, table *v, bool only_const)
     // dont select the target table
     vector<named_relation *> excluded_tables;
     vector<pair<sqltype*, table*>> excluded_t_with_c_of_type;
-    exclude_tables(victim, scope->tables, 
-                    scope->schema->tables_with_columns_of_type, 
-                    excluded_tables, 
+    exclude_tables(victim, scope->tables,
+                    scope->schema->tables_with_columns_of_type,
+                    excluded_tables,
                     excluded_t_with_c_of_type);
-    
+
     // can only select base table, because views may include the data of target table
     vector<table*> views;
     for (auto t : scope->tables) {
@@ -717,14 +718,14 @@ insert_stmt::insert_stmt(prod *p, struct scope *s, table *v, bool only_const)
             views.push_back(real_t);
     }
     for (auto v : views) {
-        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type, 
+        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type,
                         excluded_tables, excluded_t_with_c_of_type);
     }
-    
+
     auto insert_num = 1;
     // select valued columns (all)
     for (auto& col : victim->columns()) {
-        // if (col.name == PKEY_IDENT || col.name == VKEY_IDENT || d6() > 1) 
+        // if (col.name == PKEY_IDENT || col.name == VKEY_IDENT || d6() > 1)
         if (schema::target_dbms == "sqlite" && col.name == "rowid")
             continue;
         valued_column_name.push_back(col.name);
@@ -735,13 +736,13 @@ insert_stmt::insert_stmt(prod *p, struct scope *s, table *v, bool only_const)
         auto col = random_pick(victim->columns());
         valued_column_name.push_back(col.name);
     }
-    
+
     for (auto i = 0; i < insert_num; i++) {
         vector<shared_ptr<value_expr> > value_exprs;
         for (auto col : victim->columns()) {
             if (find(valued_column_name.begin(), valued_column_name.end(), col.name) == valued_column_name.end())
                 continue;
-            
+
             if (col.name == VKEY_IDENT) {
                 auto expr = make_shared<const_expr>(this, col.type);
                 assert(expr->type == col.type);
@@ -773,18 +774,18 @@ insert_stmt::insert_stmt(prod *p, struct scope *s, table *v, bool only_const)
         value_exprs_vector.push_back(value_exprs);
     }
 
-    // Do not recover, because equivalent transform may also use the scope 
+    // Do not recover, because equivalent transform may also use the scope
     // And recovering is unnecessary.
-    // recover_tables(scope->tables, 
-    //                 scope->schema->tables_with_columns_of_type, 
-    //                 excluded_tables, 
+    // recover_tables(scope->tables,
+    //                 scope->schema->tables_with_columns_of_type,
+    //                 excluded_tables,
     //                 excluded_t_with_c_of_type);
 }
 
 void insert_stmt::out(std::ostream &out)
 {
     out << "insert into " << victim->ident() << " (";
-    auto col_num = valued_column_name.size(); 
+    auto col_num = valued_column_name.size();
     for (int i = 0; i < col_num; i++) {
         out << valued_column_name[i];
         if (i + 1 < col_num)
@@ -798,7 +799,7 @@ void insert_stmt::out(std::ostream &out)
     }
 
     out << "values ";
-    
+
     for (auto value_exprs = value_exprs_vector.begin(); value_exprs != value_exprs_vector.end(); value_exprs++) {
         indent(out);
         out << "(";
@@ -809,27 +810,27 @@ void insert_stmt::out(std::ostream &out)
                 out << ", ";
         }
         out << ")";
-        if (value_exprs + 1 != value_exprs_vector.end()) 
+        if (value_exprs + 1 != value_exprs_vector.end())
             out << ", ";
     }
 }
 
 set_list::set_list(prod *p, table *target) : prod(p), myscope(p->scope)
 {
-    // update's scope might change (e.g. add victim table to scope->refs), 
+    // update's scope might change (e.g. add victim table to scope->refs),
     // use the current version only
     scope = &myscope;
-    
+
     do {
         for (auto col : target->columns()) {
             if (name_set.count(col.name) != 0)
                 continue;
-            
+
             if (col.name == VKEY_IDENT) {
                 auto  expr = make_shared<const_expr>(this, col.type);
                 assert(expr->type == col.type);
                 expr->expr = to_string(write_op_id); // use write_op_id
-                
+
                 value_exprs.push_back(expr);
                 names.push_back(col.name);
                 name_set.insert(col.name);
@@ -838,13 +839,13 @@ set_list::set_list(prod *p, table *target) : prod(p), myscope(p->scope)
 
             if (col.name == PKEY_IDENT)
                 continue;
-            
+
             if (schema::target_dbms == "sqlite" && col.name == "rowid")
                 continue;
-            
+
             if (d6() < 4)
 	            continue;
-            
+
             auto expr = value_expr::factory(this, col.type);
             value_exprs.push_back(expr);
             names.push_back(col.name);
@@ -860,7 +861,7 @@ void set_list::out(std::ostream &out)
         out << " update ";
     else
         out << " set ";
-    
+
     for (size_t i = 0; i < names.size(); i++) {
         indent(out);
         out << names[i] << " = " << *value_exprs[i];
@@ -871,20 +872,20 @@ void set_list::out(std::ostream &out)
 
 update_stmt::update_stmt(prod *p, struct scope *s, table *v)
   : modifying_stmt(p, s, v) {
-    
+
     write_op_id++;
 
     if (schema::target_dbms == "clickhouse")
         handle_table = victim;
-    
+
     // dont select the target table
     vector<named_relation *> excluded_tables;
     vector<pair<sqltype*, table*>> excluded_t_with_c_of_type;
-    exclude_tables(victim, scope->tables, 
-                    scope->schema->tables_with_columns_of_type, 
-                    excluded_tables, 
+    exclude_tables(victim, scope->tables,
+                    scope->schema->tables_with_columns_of_type,
+                    excluded_tables,
                     excluded_t_with_c_of_type);
-    
+
     // can only select base table, because views may include the data of target table
     vector<table*> views;
     for (auto t : scope->tables) {
@@ -893,7 +894,7 @@ update_stmt::update_stmt(prod *p, struct scope *s, table *v)
             views.push_back(real_t);
     }
     for (auto v : views) {
-        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type, 
+        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type,
                         excluded_tables, excluded_t_with_c_of_type);
     }
 
@@ -902,13 +903,13 @@ update_stmt::update_stmt(prod *p, struct scope *s, table *v)
     set_list = make_shared<struct set_list>(this, victim);
     scope->refs.push_back(victim);
     search = bool_expr::factory(this);
-    
-    // Do not recover, because equivalent transform may also use the scope 
+
+    // Do not recover, because equivalent transform may also use the scope
     // And recovering is unnecessary.
     // // recover the scope->tables, scope->schema->tables_with_columns_of_type
-    // recover_tables(scope->tables, 
-    //                 scope->schema->tables_with_columns_of_type, 
-    //                 excluded_tables, 
+    // recover_tables(scope->tables,
+    //                 scope->schema->tables_with_columns_of_type,
+    //                 excluded_tables,
     //                 excluded_t_with_c_of_type);
 }
 
@@ -939,7 +940,7 @@ upsert_stmt::upsert_stmt(prod *p, struct scope *s, table *v)
 
   if (!victim->constraints.size())
     fail("need table w/ constraint for upsert");
-    
+
   set_list = std::make_shared<struct set_list>(this, victim);
   search = bool_expr::factory(this);
   constraint = random_pick(victim->constraints);
@@ -1033,7 +1034,7 @@ void merge_stmt::accept(prod_visitor *v)
   join_condition->accept(v);
   for (auto p : clauselist)
     p->accept(v);
-    
+
 }
 
 when_clause::when_clause(merge_stmt *p)
@@ -1066,7 +1067,7 @@ when_clause_update::when_clause_update(merge_stmt *p)
   myscope.refs = scope->refs;
   scope = &myscope;
   scope->refs.push_back(&*(p->target_table_->refs[0]));
-  
+
   set_list = std::make_shared<struct set_list>(this, p->victim);
 }
 
@@ -1143,7 +1144,7 @@ string upper_translate(string str)
             ret.push_back(str[i] + 'A' - 'a');
             continue;
         }
-        
+
         ret.push_back(str[i]);
     }
     return ret;
@@ -1157,7 +1158,7 @@ string unique_column_name()
     while (1) {
         column_name = "c" + to_string(i);
         upper_case = upper_translate(column_name);
-        if (created_col_names.count(upper_case) == 0) 
+        if (created_col_names.count(upper_case) == 0)
             break;
         i++;
     }
@@ -1171,7 +1172,7 @@ string unique_window_name(void)
     int i = 0;
     while (1) {
         window_name = "w" + to_string(i);
-        if (created_win_names.count(upper_translate(window_name)) == 0) 
+        if (created_win_names.count(upper_translate(window_name)) == 0)
             break;
         i++;
     }
@@ -1182,18 +1183,18 @@ string unique_window_name(void)
 string unique_table_name(scope *s)
 {
     if (table_init == false) {
-        for (auto t : s->tables) 
+        for (auto t : s->tables)
             exist_table_name.insert(upper_translate(t->ident()));
         table_init = true;
     }
-    
+
     string new_table_name;
     string upper_case;
     int i = 0;
     while (1) {
         new_table_name = "t" + to_string(i);
         upper_case = upper_translate(new_table_name);
-        if (exist_table_name.count(upper_case) == 0) 
+        if (exist_table_name.count(upper_case) == 0)
             break;
         i++;
     }
@@ -1204,7 +1205,7 @@ string unique_table_name(scope *s)
 string unique_index_name(scope *s)
 {
     if (index_init == false) {
-        for (auto i : s->indexes) 
+        for (auto i : s->indexes)
             exist_index_name.insert(upper_translate(i));
         index_init = true;
     }
@@ -1215,7 +1216,7 @@ string unique_index_name(scope *s)
     while (1) {
         new_index_name = "i" + to_string(i);
         upper_case = upper_translate(new_index_name);
-        if (exist_index_name.count(upper_case) == 0) 
+        if (exist_index_name.count(upper_case) == 0)
             break;
         i++;
     }
@@ -1227,7 +1228,7 @@ string unique_index_name(scope *s)
 string cockroach_table_option(prod* p, shared_ptr<table> created_table, int primary_col_id)
 {
     auto partion_col = created_table->columns()[primary_col_id];
-    
+
     string table_option = "partition ";
     table_option += "by ";
 
@@ -1239,12 +1240,12 @@ string cockroach_table_option(prod* p, shared_ptr<table> created_table, int prim
         return table_option;
     }
 
-    if (rand <= 5 || 
+    if (rand <= 5 ||
             (partion_col.type != p->scope->schema->inttype && partion_col.type != p->scope->schema->realtype)
         ) { // list partion
         table_option += "list (";
         table_option += partion_col.name + ") (\n";
-        
+
         auto partition_num = dx(4);
         set<string> used_value;
         for (int i = 0; i < partition_num; i++) {
@@ -1358,12 +1359,12 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
     table_name = unique_table_name(scope);
     created_table = make_shared<struct table>(table_name, "main", true, true);
 
-    // create at least one integer column, which make index has at least one choice 
+    // create at least one integer column, which make index has at least one choice
     // generate vkey (identify different versions)
     column wkey(VKEY_IDENT, scope->schema->inttype);
     constraints.push_back(""); // no constraint
     created_table->columns().push_back(wkey);
-    
+
     // generate pkey (identify different rows)
     column pkey(PKEY_IDENT, scope->schema->inttype);
     constraints.push_back("");
@@ -1383,13 +1384,13 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         column create_column(column_name, type);
         created_table->columns().push_back(create_column);
         string constraint_str = "";
-        if (type == scope->schema->texttype && 
+        if (type == scope->schema->texttype &&
             !scope->schema->available_collation.empty() &&
             d6() <= 3) {
             constraint_str += "collate " + random_pick(scope->schema->available_collation);
         }
 
-        // if (d6() == 1) 
+        // if (d6() == 1)
         //     constraint_str += "not null ";
         // if (d6() == 1)
         //     constraint_str += "unique ";
@@ -1400,9 +1401,10 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
     if (table_engine.find("Log") == string::npos) {            // CLICKHOUSE: log engine does not support primary key
         if (table_option.find("WITHOUT ROWID") != string::npos // SQLITE: WITHOUT ROWID must has primary key
             || table_engine.find("MergeTree") != string::npos  // CLICKHOUSE: MergeTree engine must use either primary key or order by
-            || d6() <= 5) { 
-            
+            || d6() <= 5) {
+
             has_primary_key = true;
+            has_foreign_key = true;
             primary_col_id = dx(column_num) - 1;
             // primary_key_col = created_table->columns()[primary_col];
             // constraints[primary_col] += " PRIMARY KEY";
@@ -1415,7 +1417,7 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         if (!scope->schema->available_table_options.empty()) {
             has_option = true;
             table_option += " " + random_pick(scope->schema->available_table_options);
-        } 
+        }
         if (scope->schema->target_dbms == "yugabyte") {
             has_option = true;
             table_option += " " + yugabyte_table_option(this, created_table);
@@ -1430,8 +1432,8 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
         has_engine = true;
         table_engine = random_pick(scope->schema->supported_table_engine);
     }
-    
-    
+
+
 
     // // check clause
     // if (d9() == 1) {
@@ -1462,8 +1464,34 @@ void create_table_stmt::out(std::ostream &out)
         out << ",";
         indent(out);
         out << "primary key(" << created_table->columns()[primary_col_id].name << ")";
+        tabl_pk_col_id.insert({created_table->ident(), primary_col_id});
     }
 
+    scope = &myscope;
+    int tcount = scope->schema->tables.size();
+    if (has_foreign_key && tcount > 3) {
+        auto ft = static_cast<table>(scope->schema->tables[dx(tcount-1)]);
+        int ft_pk_col_id = tabl_pk_col_id[ft.ident()];
+        int ct_col_id = -1;
+        for (int i = 0; i < created_table->columns().size(); i++) {
+            if (created_table->columns()[i].type == ft.columns()[ft_pk_col_id].type) {
+                ct_col_id = i;
+                break;
+            }
+        }
+
+        if (ct_col_id == -1)
+            goto skipfk;
+
+        out << ",";
+        indent(out);
+        out << "foreign key"
+            << "(" << created_table->columns()[ct_col_id].name << ")"
+            << " references " << ft.ident()
+            << "(" << ft.columns()[ft_pk_col_id].name << ")";
+    }
+
+skipfk:
     if (has_check) {
         out << ",";
         indent(out);
@@ -1499,7 +1527,7 @@ void create_view_stmt::out(std::ostream &out)
     out << *subquery;
 }
 
-group_clause::group_clause(prod *p, struct scope *s, 
+group_clause::group_clause(prod *p, struct scope *s,
             shared_ptr<struct select_list> select_list,
             std::vector<shared_ptr<named_relation> > *from_refs)
 : prod(p), myscope(s), modified_select_list(select_list)
@@ -1519,7 +1547,7 @@ group_clause::group_clause(prod *p, struct scope *s,
     scope->refs.clear();
     for (auto r : *from_refs)
         scope->refs.push_back(&*r);
-    
+
     int tmp_group = use_group;
     use_group = 0; // cannot use aggregate function in aggregate function
     for (size_t i = 0; i < size; i++) {
@@ -1538,7 +1566,7 @@ group_clause::group_clause(prod *p, struct scope *s,
     }
     use_group = tmp_group;
     scope->refs = tmp;
-    
+
     // generating having search condition
     // erase the refs in from clause
     for (int i = 0; i < scope->refs.size(); i++) {
@@ -1554,7 +1582,7 @@ group_clause::group_clause(prod *p, struct scope *s,
             i--;
         }
     }
-    
+
     // create a new relation to contain target_ref col and other col with aggregate function
     for (int i = 0; i < from_refs->size(); i++) {
         auto& ref = (*from_refs)[i];
@@ -1578,10 +1606,10 @@ group_clause::group_clause(prod *p, struct scope *s,
         tmp_store.push_back(new_relation);
         scope->refs.push_back(new_relation.get());
     }
-    
+
     // build having clause
     having_cond_search = bool_expr::factory(this);
-    
+
     // it use seperated my scope, do not need to restore the refs
     // scope->refs = tmp;
 }
@@ -1602,7 +1630,7 @@ prod(parent), myscope(s)
         stmt_type = 0;
     else if (type_chosen <= 6)
         stmt_type = 1;
-    else 
+    else
         stmt_type = 2;
 
     // choose the base table (not view)
@@ -1618,7 +1646,7 @@ prod(parent), myscope(s)
         }
         chosen_table_idx = (chosen_table_idx + 1) % size;
     };
-    
+
     set<string> exist_column_name;
     for (auto &c : table_ref->columns()) {
         exist_column_name.insert(upper_translate(c.name));
@@ -1657,7 +1685,7 @@ prod(parent), myscope(s)
         enable_type.push_back(scope->schema->datetype);
         auto type = random_pick<>(enable_type);
 
-        stmt_string = "alter table " + table_ref->ident() + " add column " + new_column_name 
+        stmt_string = "alter table " + table_ref->ident() + " add column " + new_column_name
                         + " " + type->name;
     }
 }
@@ -1718,12 +1746,12 @@ create_index_stmt::create_index_stmt(prod *parent, struct scope *s)
     // choosing indexed column
     // cannot use reference (i.e. &), because target_columns will erase
     auto target_columns = indexed_table->columns();
-    
+
     auto indexed_num = dx(target_columns.size());
     while (indexed_num > 0) {
         auto choice = dx(target_columns.size()) - 1;
         auto& indexed_column = target_columns[choice];
-        
+
         if (indexed_column.name == "rowid" && schema::target_dbms == "sqlite") {
             indexed_num--;
             target_columns.erase(target_columns.begin() + choice);
@@ -1740,7 +1768,7 @@ create_index_stmt::create_index_stmt(prod *parent, struct scope *s)
             asc_desc_empty.push_back("desc");
         else
             asc_desc_empty.push_back(" ");
-        
+
         // adding collation
         if (!scope->schema->available_collation.empty() &&
                 target_columns[choice].type == scope->schema->texttype &&
@@ -1766,7 +1794,7 @@ create_index_stmt::create_index_stmt(prod *parent, struct scope *s)
         auto iters = idx.equal_range(scope->schema->booltype);
         auto oper = random_pick<>(iters)->second;
         auto lhs = make_shared<column_reference>(this, oper->left);
-        auto rhs = make_shared<const_expr>(this, oper->right); 
+        auto rhs = make_shared<const_expr>(this, oper->right);
         where_expr = make_shared<comparison_op>(this, oper, lhs, rhs);
     }
 }
@@ -1775,7 +1803,7 @@ void create_index_stmt::out(ostream &out)
 {
     out << "create" << (is_unique ? " unique " : " ")
         << "index " << index_name << " on " << indexed_table_name << " (";
-    
+
     int size = indexed_column_names.size();
     for (int i = 0; i < size; i++) {
         out << indexed_column_names[i] << " ";
@@ -1800,7 +1828,7 @@ create_trigger_stmt::create_trigger_stmt(prod *parent, struct scope *s)
 
     trigger_name = unique_table_name(scope);
     trigger_time = d6() <= 4 ? "after" : "before";
-    
+
     auto choose = d9();
     if (choose <= 3)
         trigger_event = "insert";
@@ -1808,7 +1836,7 @@ create_trigger_stmt::create_trigger_stmt(prod *parent, struct scope *s)
         trigger_event = "update";
     else
         trigger_event = "delete";
-    
+
     // only choose base table
     auto tables_size = s->tables.size();
     size_t chosen_one = dx(tables_size) - 1;
@@ -1832,10 +1860,10 @@ create_trigger_stmt::create_trigger_stmt(prod *parent, struct scope *s)
             doing_stmt = make_shared<update_stmt>(this, scope);
         else
             doing_stmt = make_shared<delete_stmt>(this, scope);
-        
+
         doing_stmts.push_back(doing_stmt);
     }
-    
+
 }
 
 void create_trigger_stmt::out(std::ostream &out)
@@ -1916,7 +1944,7 @@ unioned_query::unioned_query(prod *p, struct scope *s, bool lateral, vector<sqlt
     scope->tables = s->tables;
     if (lateral)
         scope->refs = s->refs;
-    
+
     lhs = make_shared<query_spec>(this, this->scope, lateral, pointed_type);
     vector<sqltype *> tmp_type_vec;
     auto &lhs_exprs = lhs->select_list->value_exprs;
@@ -1952,7 +1980,7 @@ unioned_query::unioned_query(prod *p, struct scope *s, shared_ptr<query_spec> q_
 void unioned_query::equivalent_transform() {
     assert(!is_transformed);
     is_transformed = true;
-    
+
     if (lhs->has_group || lhs->has_window || rhs->has_group || rhs->has_window) { // keep as the same
         eq_query = make_shared<unioned_query>(this, scope, lhs, rhs, type);
         return;
@@ -1965,7 +1993,7 @@ void unioned_query::equivalent_transform() {
                 eq = &op;
         }
         assert(eq);
-        
+
         shared_ptr<bool_term> intersect_predicate;
         auto list_size = lhs->select_list->value_exprs.size();
         for (int i = 0; i < list_size; i++) {
@@ -2046,11 +2074,11 @@ insert_select_stmt::insert_select_stmt(prod *p, struct scope *s, table *v)
     // dont select the target table
     vector<named_relation *> excluded_tables;
     vector<pair<sqltype*, table*>> excluded_t_with_c_of_type;
-    exclude_tables(victim, scope->tables, 
-                    scope->schema->tables_with_columns_of_type, 
-                    excluded_tables, 
+    exclude_tables(victim, scope->tables,
+                    scope->schema->tables_with_columns_of_type,
+                    excluded_tables,
                     excluded_t_with_c_of_type);
-    
+
     // can only select base table, because views may include the data of target table
     vector<table*> views;
     for (auto t : scope->tables) {
@@ -2059,7 +2087,7 @@ insert_select_stmt::insert_select_stmt(prod *p, struct scope *s, table *v)
             views.push_back(real_t);
     }
     for (auto v : views) {
-        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type, 
+        exclude_tables(v, scope->tables, scope->schema->tables_with_columns_of_type,
                         excluded_tables, excluded_t_with_c_of_type);
     }
 
@@ -2072,18 +2100,18 @@ insert_select_stmt::insert_select_stmt(prod *p, struct scope *s, table *v)
 
     target_subquery = make_shared<query_spec>(this, scope, false, &pointed_type);
 
-    // Do not recover, because equivalent transform may also use the scope 
+    // Do not recover, because equivalent transform may also use the scope
     // And recovering is unnecessary.
-    // recover_tables(scope->tables, 
-    //                 scope->schema->tables_with_columns_of_type, 
-    //                 excluded_tables, 
+    // recover_tables(scope->tables,
+    //                 scope->schema->tables_with_columns_of_type,
+    //                 excluded_tables,
     //                 excluded_t_with_c_of_type);
 }
 
 void insert_select_stmt::out(std::ostream &out)
 {
     out << "insert into " << victim->ident()<< " (";
-    auto col_num = valued_column_name.size(); 
+    auto col_num = valued_column_name.size();
     for (int i = 0; i < col_num; i++) {
         out << valued_column_name[i];
         if (i + 1 < col_num)
@@ -2108,7 +2136,7 @@ analyze_stmt::analyze_stmt(prod* p, struct scope *s) : prod(p), myscope(s)
     target = random_pick(available_t)->name;
 }
 
-void analyze_stmt::out(std::ostream &out) 
+void analyze_stmt::out(std::ostream &out)
 {
     out << "ANALYZE ";
     if (scope->schema->target_dbms == "tidb")
@@ -2127,7 +2155,7 @@ set_stmt::set_stmt(prod* p, struct scope *s) : prod(p), myscope(s)
     value = random_pick<>(it->second);
 }
 
-void set_stmt::out(std::ostream &out) 
+void set_stmt::out(std::ostream &out)
 {
     out << "SET " << parm << " = " << value;
 }
@@ -2137,7 +2165,7 @@ shared_ptr<prod> statement_factory(struct scope *s)
     try {
         s->new_stmt();
         // if less than 2 tables, update_stmt will easily enter a dead loop.
-        if (s->tables.size() < 2) { 
+        if (s->tables.size() < 2) {
             if (s->tables.empty() || d6() > 3)
                 return make_shared<create_table_stmt>((struct prod *)0, s);
             else
@@ -2158,7 +2186,7 @@ shared_ptr<prod> statement_factory(struct scope *s)
             return make_shared<drop_table_stmt>((struct prod *)0, s);
         if (choice == 4)
             return make_shared<delete_stmt>((struct prod *)0, s);
-        if (choice == 5) 
+        if (choice == 5)
             return make_shared<update_stmt>((struct prod *)0, s);
         if (choice == 6)
             return make_shared<create_index_stmt>((struct prod *)0, s);
@@ -2166,7 +2194,7 @@ shared_ptr<prod> statement_factory(struct scope *s)
         if (choice >= 2 && choice <= 5)
             return make_shared<drop_table_stmt>((struct prod *)0, s);
         #endif
-        
+
         #if (!defined TEST_MONETDB) && (!defined TEST_PGSQL) && (!defined TEST_CLICKHOUSE)
         if (choice == 7)
             return make_shared<create_trigger_stmt>((struct prod *)0, s);
@@ -2203,20 +2231,20 @@ shared_ptr<prod> ddl_statement_factory(struct scope *s)
 
         // create_index is not in here, because index is activated only after some data has been inserted
         // so create_index is in basic_dml_statement_factory
-        
+
         // do not alter table, because dropping table will make existing view invalid
         // if (choice == 4)
         //     return make_shared<alter_table_stmt>((struct prod *)0, s);
 
         // // database has at least LEAST_TABLE_NUM tables in case dml statements are used
-        // if (choice == 5 && s->tables.size() > LEAST_TABLE_NUM) 
+        // if (choice == 5 && s->tables.size() > LEAST_TABLE_NUM)
         //     return make_shared<drop_table_stmt>((struct prod *)0, s);
 
         #if (!defined TEST_MONETDB) && (!defined TEST_PGSQL) && (!defined TEST_CLICKHOUSE) && (!defined TEST_TIDB)
         if (choice == 6)
             return make_shared<create_trigger_stmt>((struct prod *)0, s);
         #endif
-        
+
         return ddl_statement_factory(s);
 
     } catch (runtime_error &e) {
@@ -2235,7 +2263,7 @@ shared_ptr<prod> basic_dml_statement_factory(struct scope *s)
             return make_shared<analyze_stmt>((struct prod *)0, s);
         else if (s->schema->target_dbms != "clickhouse" && choice <= 2) // CLICKHOUSE does not support CREATE INDEX
             return make_shared<create_index_stmt>((struct prod *)0, s);
-        else 
+        else
             return make_shared<insert_stmt>((struct prod *)0, s, (table *)NULL, true);
 
     } catch (runtime_error &e) {

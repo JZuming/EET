@@ -39,7 +39,6 @@ struct pg_type : sqltype {
           typelem_(typelem), typarray_(typarray), typtype_(typtype) { }
     virtual ~pg_type() {}
     virtual bool consistent(struct sqltype *rvalue);
-    // bool consistent_(sqltype *rvalue);
 };
 
 struct pgsql_connection {
@@ -60,16 +59,9 @@ struct schema_pqxx : schema, pgsql_connection {
         return id;
     }
     bool is_consistent_with_basic_type(sqltype *rvalue);
-    // schema_pqxx(string &conninfo, bool no_catalog);
     schema_pqxx(string db, unsigned int port, string path, bool no_catalog);
     ~schema_pqxx();
 };
-
-// struct dut_pqxx : dut_base {
-//     pqxx::connection c;
-//     virtual void test(const std::string &stmt);
-//     dut_pqxx(std::string conninfo);
-// };
 
 struct dut_libpq : dut_base, pgsql_connection {
     virtual void test(const string &stmt,

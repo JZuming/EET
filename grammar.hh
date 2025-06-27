@@ -85,7 +85,7 @@ struct expr_join_cond : join_cond {
 };
 
 struct joined_table : table_ref {
-    virtual void out(std::ostream &out);  
+    virtual void out(std::ostream &out);
     joined_table(prod *p);
     std::string type;
     std::string alias;
@@ -122,8 +122,8 @@ struct select_list : prod {
     vector<shared_ptr<named_relation> > *prefer_refs;
     relation derived_table;
     int columns = 0;
-    select_list(prod *p, 
-              vector<shared_ptr<named_relation> > *refs = 0, 
+    select_list(prod *p,
+              vector<shared_ptr<named_relation> > *refs = 0,
               vector<sqltype *> *pointed_type = NULL,
               bool select_all = false);
     virtual void out(std::ostream &out);
@@ -140,7 +140,7 @@ struct group_clause: prod {
     shared_ptr<struct select_list> modified_select_list;
     vector<shared_ptr<named_relation>> tmp_store; // let new_relation not to be freed so far (for having clause)
     shared_ptr<bool_expr> having_cond_search;
-    group_clause(prod *p, struct scope *s, 
+    group_clause(prod *p, struct scope *s,
             shared_ptr<struct select_list> select_list,
             std::vector<shared_ptr<named_relation> > *from_refs);
     shared_ptr<column_reference> target_ref;
@@ -174,7 +174,7 @@ struct query_spec : prod {
     shared_ptr<struct from_clause> from_clause;
     shared_ptr<struct select_list> select_list;
     shared_ptr<bool_expr> search;
-    
+
     bool has_group = false;
     shared_ptr<struct group_clause> group_clause;
 
@@ -183,7 +183,7 @@ struct query_spec : prod {
 
     bool has_order = false;
     vector<pair<string, bool> > order_clause;
-    
+
     bool has_limit = false;
     int limit_num;
 
@@ -191,20 +191,20 @@ struct query_spec : prod {
     virtual void out(std::ostream &out);
 
     query_spec(prod *p, struct scope *s,
-                bool lateral = 0, 
+                bool lateral = 0,
                 vector<sqltype *> *pointed_type = NULL,
                 bool txn_mode = false);
-    
+
     query_spec(prod *p, struct scope *s,
-              table *from_table, 
+              table *from_table,
               shared_ptr<bool_expr> where_search);
-    
+
     query_spec(prod *p, struct scope *s,
-              table *from_table, 
-              op *target_op, 
+              table *from_table,
+              op *target_op,
               shared_ptr<value_expr> left_operand,
               shared_ptr<value_expr> right_operand);
-    
+
     virtual void accept(prod_visitor *v) {
         v->visit(this);
         select_list->accept(v);
@@ -282,7 +282,7 @@ struct insert_stmt : modifying_stmt {
     virtual void accept(prod_visitor *v) {
         v->visit(this);
         for (auto &value_exprs: value_exprs_vector)
-            for (auto p : value_exprs) 
+            for (auto p : value_exprs)
                 p->accept(v);
     }
 };
@@ -297,7 +297,7 @@ struct set_list : prod {
     virtual void out(std::ostream &out);
     virtual void accept(prod_visitor *v) {
         v->visit(this);
-        for (auto p : value_exprs) 
+        for (auto p : value_exprs)
             p->accept(v);
     }
 };
@@ -334,7 +334,7 @@ struct update_stmt : modifying_stmt {
 
 struct when_clause : prod {
   bool matched;
-  shared_ptr<bool_expr> condition;  
+  shared_ptr<bool_expr> condition;
 //   shared_ptr<prod> merge_action;
   when_clause(struct merge_stmt *p);
   virtual ~when_clause() { }
@@ -409,6 +409,7 @@ struct create_table_stmt: prod {
     string table_engine;
     bool has_primary_key = false;
     int primary_col_id;
+    bool has_foreign_key = false;
     virtual void out(std::ostream &out);
     create_table_stmt(prod *parent, struct scope *s);
     virtual void accept(prod_visitor *v) {
@@ -458,7 +459,7 @@ struct create_index_stmt: prod {
     string index_name;
     // cannot refer to table* or column*, because the (table or column) instances may die when output
     string indexed_table_name;
-    vector<string> indexed_column_names; 
+    vector<string> indexed_column_names;
     vector<string> asc_desc_empty;
     vector<bool> has_collation;
     vector<string> collation;
@@ -484,7 +485,7 @@ struct create_trigger_stmt: prod {
     virtual void accept(prod_visitor *v) {
         v->visit(this);
         for (auto &stmt : doing_stmts)
-            stmt->accept(v); 
+            stmt->accept(v);
     }
 };
 
@@ -493,7 +494,7 @@ struct unioned_query : prod { //can be used as same as query_spec
     shared_ptr<query_spec> lhs;
     shared_ptr<query_spec> rhs;
     string type; // union, union all, intersect, or except
-    virtual void out(std::ostream &out);  
+    virtual void out(std::ostream &out);
     unioned_query(prod *p, struct scope *s, bool lateral = 0, vector<sqltype *> *pointed_type = NULL);
     unioned_query(prod *p, struct scope *s, shared_ptr<query_spec> q_lhs, shared_ptr<query_spec> q_rhs, string u_type);
     void equivalent_transform();
@@ -522,7 +523,7 @@ struct insert_select_stmt : modifying_stmt {
 
 struct txn_string_stmt : prod {
   string stmt;
-  txn_string_stmt(prod *p, string bs) : 
+  txn_string_stmt(prod *p, string bs) :
     prod(p), stmt(bs) {}
   virtual ~txn_string_stmt() {}
   virtual void out(std::ostream &out) {out << stmt;}

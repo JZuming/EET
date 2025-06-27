@@ -57,7 +57,7 @@ int d100() {
         static uniform_int_distribution<> pick(1, 100);
         return pick(smith::rng);
     }
-    else 
+    else
         return file_random_machine::using_file->get_random_num(1, 100, 2);
 }
 
@@ -72,7 +72,7 @@ int dx(int x) {
         if (x == 1)
             return 1;
         int bytenum;
-        if (x <= (0xff >> 3)) // 
+        if (x <= (0xff >> 3))
             bytenum = 1;
         else if (x <= (0xffff >> 3))
             bytenum = 2;
@@ -89,7 +89,6 @@ string random_string(int char_num) {
         unsigned int rand_value = dx(0x100) - 1;
         char c = 32 + (rand_value % 95); // 32 - 127
         if (c == '\'' || c == '"' || c == '\\' || c == '%' || c == '_' || c == '\n') {
-            // str = str + "\\";
             continue;
         }
         str = str + c;
@@ -110,7 +109,7 @@ file_random_machine::file_random_machine(string s)
         buffer = NULL;
         return;
     }
-    
+
     if (end_pos < 100) {
         cerr << "Exit: rand file is too small (should larger than 100 byte)" << endl;
         exit(0);
@@ -153,11 +152,11 @@ int file_random_machine::get_random_num(int min, int max, int byte_num)
 
     if (buffer == NULL)
         return 0;
-    
+
     auto scope = max - min + 1;
-    if (scope <= 0) 
+    if (scope <= 0)
         return min;
-    
+
     // default: small endian
     auto readable = end_pos - cur_pos;
     auto read_num = readable < byte_num ? readable : byte_num;
@@ -174,6 +173,6 @@ int file_random_machine::get_random_num(int min, int max, int byte_num)
         cerr << "WARNING: all bytes have been read" << endl;
         shown_all_used = true;
     }
-    
+
     return min + rand_num % scope;
 }

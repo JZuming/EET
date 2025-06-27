@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
     // analyze the options
     map<string,string> options;
     regex optregex("--\
-(help|db-test-num|seed|cpu-affinity|\
+(help|db-test-num|db-table-num|seed|cpu-affinity|\
 ignore-crash|\
 sqlite|\
 postgres-db|postgres-port|postgres-path|\
@@ -232,6 +232,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
         "    --yugabyte-port=int        YugaByte server port number" << endl <<
         "    --yugabyte-host=constr     YugaByte server host address" << endl <<
         "    --db-test-num=int      number of qcn tests for each generated database" << endl <<
+        "    --db-table-num=int      number of tables for each generated database" << endl <<
         "    --seed=int             seed RNG with specified int instead of PID" << endl <<
         "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl <<
         "    --ignore-crash         ignore crash bug, the fuzzer will not stop when it finds crash issues" << endl <<
@@ -251,6 +252,10 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
     int db_test_time = DEFAULT_DB_TEST_TIME;
     if (options.count("db-test-num") > 0)
         db_test_time = stoi(options["db-test-num"]);
+
+    int table_num = 0;
+    if (options.count("db-table-num") > 0)
+        table_num = stoi(options["db-table-num"]);
 
     cpu_affinity = -1;
     if (options.count("cpu-affinity") > 0)
@@ -278,18 +283,15 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             cerr << "running on CPU core " << sched_getcpu() << " ... " << endl;
 
             // seed must set in the child process, otherwise the child always generate the same statement
-            // smith::rng.seed(options.count("seed") ? stoi(options["seed"]) : time(NULL));
             random_device rd;
             auto rand_seed = rd();
-            // rand_seed = 212331246;
             cerr << "random seed: " << rand_seed << " ... " << endl;
             smith::rng.seed(rand_seed);
 
             // don't need to restart server
-            // fork_if_server_closed(d_info);
             while (true) {
                 try {
-                    generate_database(d_info);
+                    generate_database(d_info, table_num);
                     break;
                 } catch (exception &e) { // if fails, just try again
                     string err = e.what();
@@ -332,7 +334,6 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
                     qcn = make_shared<qcn_update_tester>(d_info, db_schema);
                 }
                 else {
-                // else if (choice <= 12) {
                     cerr << "qcn_delete_tester" << endl;
                     qcn = make_shared<qcn_delete_tester>(d_info, db_schema);
                 }
@@ -352,12 +353,6 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
                     qcn->qcn_test_without_initialization(); // get latest results
                     qcn->save_testcase("minimized");
 
-                    // cerr << "origin output:" << endl;
-                    // qcn->print_stmt_output(qcn->original_query_result);
-                    // cerr << "qit output:" << endl;
-                    // qcn->print_stmt_output(qcn->qit_query_result);
-                    // qcn->print_origin_qit_difference();
-
                     // reduce database
                     multiset<vector<string>> min_origin_result = qcn->original_query_result;
                     multiset<vector<string>> min_qit_result = qcn->qit_query_result;
@@ -371,14 +366,6 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
                 }
                 executed_test_num ++;
                 print_test_time_info();
-                // // used for checking statement results
-                // cerr << "qit_query_result: " << endl;
-                // for (auto& row : qcn->qit_query_result) {
-                //     for (auto& item : row)
-                //         cerr << item << " ";
-                //     cerr << endl;
-                // }
-                // exit(EXIT_FAILURE);
             }
             ssize_t bytes_written = write(pipefd[1], &dbms_execution_ms, sizeof(dbms_execution_ms));
             if (bytes_written == -1) {
@@ -391,7 +378,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             close(pipefd[1]);
             exit(EXIT_SUCCESS);
         }
-        // close(pipefd[1]);  // Close unused write end
+
         int status;
         auto res = waitpid(qcn_test_pid, &status, 0);
         if (res <= 0) {
@@ -425,7 +412,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             std::cerr << "Not all bytes read. Expected: " << sizeof(dbms_execution_ms) << ", Read: " << bytes_read << std::endl;
             exit(EXIT_FAILURE);
         }
-        // close(pipefd[0]);
+
         executed_test_num = executed_test_num + db_test_time;
         print_test_time_info();
         cerr << "done" << endl;

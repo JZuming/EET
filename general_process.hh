@@ -104,7 +104,7 @@ void dut_reset_to_backup(dbms_info& d_info);
 void dut_get_content(dbms_info& d_info, 
                     map<string, vector<vector<string>>>& content);
 
-int generate_database(dbms_info& d_info);
+int generate_database(dbms_info& d_info, int t_num);
 
 string print_stmt_to_string(shared_ptr<prod> stmt);
 

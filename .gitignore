@@ -39,3 +39,6 @@ qcn
 .dirstamp
 eet
 .vscode
+.patch
+.err
+.log

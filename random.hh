@@ -41,7 +41,7 @@ struct file_random_machine {
     static struct file_random_machine *get(string filename);
     static bool map_empty();
     static void use_file(string filename);
-    
+
     file_random_machine(string s);
     ~file_random_machine();
     int get_random_num(int min, int max, int byte_num);

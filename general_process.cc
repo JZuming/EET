@@ -544,7 +544,7 @@ bool compare_output(vector<vector<vector<string>>>& a_output,
     return true;
 }
 
-int generate_database(dbms_info& d_info)
+int generate_database(dbms_info& d_info, int t_num)
 {
     if (remove(DB_RECORD_FILE) != 0) {
         cerr << "generate_database: cannot remove file (" << DB_RECORD_FILE << ")" << endl;
@@ -552,7 +552,7 @@ int generate_database(dbms_info& d_info)
 
     dut_reset(d_info);
 
-    auto ddl_stmt_num = d6() + 3; // at least 3 statements to create 3 tables
+    auto ddl_stmt_num = (t_num > 0) ? t_num : d6() + 3; // at least 3 statements to create 3 tables
     for (auto i = 0; i < ddl_stmt_num; i++)
         interect_test(d_info, &ddl_statement_factory, false, DB_RECORD_FILE); // has disabled the not null, check and unique clause
 

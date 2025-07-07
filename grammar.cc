@@ -19,6 +19,7 @@ table *handle_table = NULL;
 int write_op_id = 0; // start from 10000
 static int row_id = 10000; // start from 10000
 
+map<string, int> tabl_pk_col_id;
 static set<string> created_col_names;
 static set<string> created_win_names;
 static set<string> exist_table_name;
@@ -1403,6 +1404,7 @@ create_table_stmt::create_table_stmt(prod *parent, struct scope *s)
             || d6() <= 5) { 
             
             has_primary_key = true;
+            has_foreign_key = true;
             primary_col_id = dx(column_num) - 1;
             // primary_key_col = created_table->columns()[primary_col];
             // constraints[primary_col] += " PRIMARY KEY";
@@ -1462,8 +1464,34 @@ void create_table_stmt::out(std::ostream &out)
         out << ",";
         indent(out);
         out << "primary key(" << created_table->columns()[primary_col_id].name << ")";
+        tabl_pk_col_id.insert_or_assign(created_table->ident(), primary_col_id);
     }
 
+    scope = &myscope;
+    int tcount = scope->schema->tables.size();
+    if (has_foreign_key && tcount > 3) {
+        auto ft = static_cast<table>(scope->schema->tables[dx(tcount-1)]);
+        int ft_pk_col_id = tabl_pk_col_id[ft.ident()];
+        int ct_col_id = -1;
+        for (int i = 0; i < created_table->columns().size(); i++) {
+            if (created_table->columns()[i].type == ft.columns()[ft_pk_col_id].type) {
+                ct_col_id = i;
+                break;
+            }
+        }
+
+        if (ct_col_id == -1)
+            goto skipfk;
+
+        out << ",";
+        indent(out);
+        out << "foreign key"
+            << "(" << created_table->columns()[ct_col_id].name << ")"
+            << " references " << ft.ident()
+            << "(" << ft.columns()[ft_pk_col_id].name << ")";
+    }
+
+skipfk:
     if (has_check) {
         out << ",";
         indent(out);

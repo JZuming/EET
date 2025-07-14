@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
     // analyze the options
     map<string,string> options;
     regex optregex("--\
-(help|db-test-num|seed|cpu-affinity|\
+(help|db-test-num|db-table-num|seed|cpu-affinity|\
 ignore-crash|\
 sqlite|\
 postgres-db|postgres-port|postgres-path|\
@@ -232,6 +232,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
         "    --yugabyte-port=int        YugaByte server port number" << endl <<
         "    --yugabyte-host=constr     YugaByte server host address" << endl <<
         "    --db-test-num=int      number of qcn tests for each generated database" << endl <<
+        "    --db-table-num=int      number of tables for each generated database" << endl <<
         "    --seed=int             seed RNG with specified int instead of PID" << endl <<
         "    --cpu-affinity=int     set cpu affinity of qcn and its child process to specific CPU" << endl <<
         "    --ignore-crash         ignore crash bug, the fuzzer will not stop when it finds crash issues" << endl <<
@@ -251,6 +252,10 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
     int db_test_time = DEFAULT_DB_TEST_TIME;
     if (options.count("db-test-num") > 0)
         db_test_time = stoi(options["db-test-num"]);
+
+    int table_num = 0;
+    if (options.count("db-table-num") > 0)
+        table_num = stoi(options["db-table-num"]);
 
     cpu_affinity = -1;
     if (options.count("cpu-affinity") > 0)
@@ -289,7 +294,7 @@ oceanbase-db|oceanbase-port|oceanbase-host)(?:=((?:.|\n)*))?");
             // fork_if_server_closed(d_info);
             while (true) {
                 try {
-                    generate_database(d_info);
+                    generate_database(d_info, table_num);
                     break;
                 } catch (exception &e) { // if fails, just try again
                     string err = e.what();

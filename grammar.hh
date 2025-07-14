@@ -408,6 +408,7 @@ struct create_table_stmt: prod {
     bool has_engine = false;
     string table_engine;
     bool has_primary_key = false;
+    bool has_foreign_key = false;
     int primary_col_id;
     virtual void out(std::ostream &out);
     create_table_stmt(prod *parent, struct scope *s);

@@ -211,8 +211,8 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, string path, bool no_cata
     PQclear(res);
 
     // address the schema change in postgresql 11 that replaced proisagg and proiswindow with prokind
-    string procedure_is_aggregate = version_num < 110000 ? "proisagg" : "prokind = 'a'";
-    string procedure_is_window = version_num < 110000 ? "proiswindow" : "prokind = 'w'";
+    string procedure_is_aggregate = "prokind = 'a'";
+    string procedure_is_window = "prokind = 'w'";
 
     // cerr << "Loading types...";
     if (has_types == false) {
@@ -299,39 +299,42 @@ schema_pqxx::schema_pqxx(string db, unsigned int port, string path, bool no_cata
     supported_setting["enable_sort"] = vector<string>({"on", "off"});
     supported_setting["enable_tidscan"] = vector<string>({"on", "off"});
 
-    // Planner Cost Constants
-    // supported_setting["seq_page_cost"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
-    // supported_setting["random_page_cost "] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
-    // supported_setting["cpu_tuple_cost"] = vector<string>({"0", "0.001", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000"});
-    // supported_setting["cpu_index_tuple_cost"] = vector<string>({"0", "0.0005", "0.005", "0.05", "0.5", "5", "50", "500", "5000", "50000", "500000"});
-    // supported_setting["cpu_operator_cost"] = vector<string>({"0", "0.00025", "0.0025", "0.025", "0.25", "2.5", "25", "250", "2500", "25000", "250000"});
-    // supported_setting["parallel_setup_cost"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
-    // supported_setting["parallel_tuple_cost"] = vector<string>({"0", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000"});
-    // supported_setting["min_parallel_table_scan_size"] = vector<string>({"0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "715827882"});
-    // supported_setting["min_parallel_index_scan_size"] = vector<string>({"0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "715827882"});
-    // supported_setting["effective_cache_size"] = vector<string>({"1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000", "2147483647"});
-    // supported_setting["jit_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
-    // supported_setting["jit_inline_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
-    // supported_setting["jit_optimize_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
+#ifdef USE_PLANNER_PROP
+    supported_setting["seq_page_cost"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["random_page_cost "] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["cpu_tuple_cost"] = vector<string>({"0", "0.001", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000"});
+    supported_setting["cpu_index_tuple_cost"] = vector<string>({"0", "0.0005", "0.005", "0.05", "0.5", "5", "50", "500", "5000", "50000", "500000"});
+    supported_setting["cpu_operator_cost"] = vector<string>({"0", "0.00025", "0.0025", "0.025", "0.25", "2.5", "25", "250", "2500", "25000", "250000"});
+    supported_setting["parallel_setup_cost"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["parallel_tuple_cost"] = vector<string>({"0", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000"});
+    supported_setting["min_parallel_table_scan_size"] = vector<string>({"0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "715827882"});
+    supported_setting["min_parallel_index_scan_size"] = vector<string>({"0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "715827882"});
+    supported_setting["effective_cache_size"] = vector<string>({"1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000", "2147483647"});
+    supported_setting["jit_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
+    supported_setting["jit_inline_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
+    supported_setting["jit_optimize_above_cost"] = vector<string>({"-1", "0", "1", "10", "100", "1000", "10000", "100000", "1000000", "10000000", "100000000", "1000000000"});
+    supported_setting["default_statistics_target"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "10000"});
+    supported_setting["cursor_tuple_fraction"] = vector<string>({"0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"});
+    supported_setting["from_collapse_limit"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["join_collapse_limit"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["recursive_worktable_factor"] = vector<string>({"0.001", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000"});
+#endif
 
     // Genetic Query Optimizer
     supported_setting["geqo"] = vector<string>({"on", "off"});
-    // supported_setting["geqo_threshold"] = vector<string>({"2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
-    // supported_setting["geqo_effort"] = vector<string>({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-    // supported_setting["geqo_pool_size"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
-    // supported_setting["geqo_generations"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128"});
-    // supported_setting["geqo_selection_bias"] = vector<string>({"1.50", "1.60", "1.70", "1.80", "1.90", "2.00"});
-    // supported_setting["geqo_seed"] = vector<string>({"0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"});
+#ifdef USE_GEQO_PROP
+    supported_setting["geqo_threshold"] = vector<string>({"2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["geqo_effort"] = vector<string>({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+    supported_setting["geqo_pool_size"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
+    supported_setting["geqo_generations"] = vector<string>({"0", "1", "2", "4", "8", "16", "32", "64", "128"});
+    supported_setting["geqo_selection_bias"] = vector<string>({"1.50", "1.60", "1.70", "1.80", "1.90", "2.00"});
+    supported_setting["geqo_seed"] = vector<string>({"0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"});
+#endif
 
     // Other Planner Options
-    // supported_setting["default_statistics_target"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "10000"});
     supported_setting["constraint_exclusion"] = vector<string>({"on", "off", "partition"});
-    // supported_setting["cursor_tuple_fraction"] = vector<string>({"0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"});
-    // supported_setting["from_collapse_limit"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
     supported_setting["jit"] = vector<string>({"on", "off"});
-    // supported_setting["join_collapse_limit"] = vector<string>({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "2147483647"});
     supported_setting["plan_cache_mode"] = vector<string>({"auto", "force_custom_plan", "force_generic_plan"});
-    // supported_setting["recursive_worktable_factor"] = vector<string>({"0.001", "0.01", "0.1", "1", "10", "100", "1000", "10000", "100000", "1000000"});
 
     target_dbms = "postgres";
 

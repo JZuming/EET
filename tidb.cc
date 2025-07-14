@@ -147,8 +147,9 @@ schema_tidb::schema_tidb(string db, unsigned int port)
     texttype = sqltype::get("varchar(100)");
     datetype = sqltype::get("varchar(100)");
 
-    available_table_options.push_back("SHARD_ROW_ID_BITS=0");
-    available_table_options.push_back("SHARD_ROW_ID_BITS=6");
+    // tidb does not support SHARD_ROW_ID_BITS in recent versions
+    // available_table_options.push_back("SHARD_ROW_ID_BITS=0");
+    // available_table_options.push_back("SHARD_ROW_ID_BITS=6");
     available_table_options.push_back("PRE_SPLIT_REGIONS=0");
     available_table_options.push_back("PRE_SPLIT_REGIONS=4");
     available_table_options.push_back("AUTO_ID_CACHE=0");
